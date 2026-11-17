@@ -171,8 +171,11 @@ ClassLoader，桌面里的类一个都找不到。
 
 未并（Z-Flow 已有对应入口或本阶段不做）：
 
-- 弹幕通知、快捷建议、边缘防误触、图标适配、来电拦截、壁纸等非小窗功能
-  （`ProductFeatures` 里的空实现仅为接口兼容）。
+- 弹幕通知、快捷建议、边缘防误触、图标适配、来电拦截、壁纸等非小窗功能。
+  上游用 `HostExtras` + `ProductFeatures` 注入，Z-Flow 侧全是空实现，
+  2026-11 连同空的 `COMPANION_ENVIRONMENT` 环境同步一起删除。
+
+死代码清理（同批）见 `docs/nc-integration-status.md` 的「4.1 死代码清理」。
 - 上游 Compose 设置页（`features/floatingwindow/ui/**`）——设置界面仍用 Z-Flow 的 Preference 页。
 
 ## 贴边把手与关闭方式（对齐 Z-Flow）

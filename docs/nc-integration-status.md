@@ -136,12 +136,40 @@ NC 的角落扇形菜单已删，斜滑菜单由 Z-Flow 自己的轮盘承担：
 | **演示/诊断 Activity**（`DemoActivity`/`DiagnosticActivity`/`TaskTools`） | 无 manifest 声明的死代码 |
 | **黑名单 → `corner.blocked` 镜像** | `blocked` 只被扇区消费，扇区已删 |
 
-保留与 Z-Flow 互补的引擎内部能力：`LinkedBack`（小窗根返回路由）、`BackVisual`
-（返回动画预览）、`ShareWindow`（分享开小窗）、`ServerViewport`（freeform 任务
+保留与 Z-Flow 互补的引擎内部能力：`LinkedBack`（小窗根返回路由）、
+`ShareWindow`（分享开小窗）、`ServerViewport`（freeform 任务
 viewport 一致性）、`WindowContinuation`（贴边保活）。
 
-**「双击底部中心唤出键盘」**：上游 NC 的该项功能在移植时就未并入（`ProductFeatures`
-空实现），当前代码里不存在，无需删除。
+**「双击底部中心唤出键盘」**：当前代码里不存在（上游的 `ime_double_tap_retrigger`
+参数与经典内核兜底实现已在开窗签名精简时一并删除），无需删除。
+
+## 4.1 死代码清理（移植残留，2026-11）
+
+引擎是整包移植来的，保留了上游的双产品变体与伴随功能骨架。逐类核对引用后，
+下面这些全仓库零引用，已删除且不改变任何在用行为：
+
+| 删除项 | 上游用途 / 为什么在这里是死的 |
+|---|---|
+| `java_init.list` 的 `LauncherGuard` 条目 | 桌面防误触模块没移植，类不存在，LSPosed 每次开机抛一次 `ClassNotFoundException` |
+| `core/HostSnapshot` | 宿主配置快照；实际 `SystemUiHost` 直接走 `ConfigProvider`，这条兜底从没接上 |
+| `core/ui/MenuBackground` | 菜单圆角背景模糊；菜单由 `WindowControls` 直接画纯色 |
+| `core/WindowBackendSelection` | 用 PM 组件状态记「完整版 / 仅小窗版」；Z-Flow 固定走 NC |
+| `WindowShortcutActivity` | 往桌面加「当前窗口」快捷方式，不在任何清单里 |
+| `WindowHostPolicy` | 角落 / 默认槽位 / 通知入口的准入判断，唯一的调用方 `dropAvailable` 也是零引用 |
+| `Rules.triggered` / `fanSelection` / `validPackage` | 底角扇形菜单的角度判定，判定已由 Z-Flow 轮盘承担 |
+| `BackVisual` + `PREPARE_BACK` / `CANCEL_BACK` / `FINISH_BACK` 通道 | 返回动画预览接力：发送端没有任何调用方，接收端却注册着监听，引擎里 5 个方法等不到请求 |
+| `HostExtras` / `ProductFeatures` | 弹幕通知、旋转建议、边缘防误触、受保护区域上报，12 个方法全是空实现，`SystemUiHost` 却每帧拼 JSON 喂它们 |
+| `OTP_INPUT` / `Wire.inputDigits` | 验证码自动填写：`createInput()` 恒返回 null，分支只会回失败码 |
+| `MOVE` / `RELEASE` 指令 | 拖迷你窗本体自由移动，控件层只发 `MINI_DRAG` |
+| 19 张 `ic_game_*`、5 张 `ic_qs_*`、`ic_shortcut_window` | 游戏助手面板 / 快捷设置磁贴 / 快捷方式图标，引用数全为 0 |
+
+`maxWindows` 注释写着「由打开请求携带」，但没有任何请求带这个值
+（`max_freeform_windows` 设置项已删），实际恒为 2；改成显式常量 `MINI_WINDOW_LIMIT`。
+
+仍未动：`ModuleIdentity` / `WindowBackendOwnership` / `WindowBackendConflict`
+的双产品仲裁（约 130 行，只在用户同时装了上游 NativeComplements 时生效），
+以及经典虚拟屏兜底（`FreeformWindow` / `FreeformManager` / `ImeRetrigger`，
+NC 不可用时才跑）——两者都是「要不要保留共存/兜底」的产品决定，不是死代码。
 
 ## 5. 未实现——可以做到，但本阶段没做 ⏸
 

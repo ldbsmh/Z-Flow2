@@ -224,7 +224,6 @@ final class TaskCover {
         gestureHold=false;gestureAt=-1;began=SystemClock.elapsedRealtime();
         motionAt=from.equals(to)&&radiusFrom==radiusTo?began-duration:began;
     }
-    void resumeTo(RectF bounds,float radius){finishGesture(bounds,radius);}
     void delayEntry(long delay){notBefore=SystemClock.elapsedRealtime()+Math.max(0,delay);}
     boolean exiting(){return exiting;}
     long exit(){

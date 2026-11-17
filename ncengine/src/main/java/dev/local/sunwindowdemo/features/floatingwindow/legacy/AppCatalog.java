@@ -76,6 +76,5 @@ final class AppCatalog {
     private static String sectionFromKey(String key) {
         return !key.isEmpty()&&key.charAt(0)>='A'&&key.charAt(0)<='Z'?key.substring(0,1):"#";
     }
-    static String section(String label) { return sectionFromKey(sortKey(label)); }
 
 }
