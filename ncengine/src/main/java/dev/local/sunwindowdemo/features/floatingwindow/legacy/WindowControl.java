@@ -5,7 +5,7 @@ final class WindowControl {
     enum Route { IGNORE, MUTE, RESTORE_MINI, MINI_SIZE, EDGE, MINI_DRAG, GENERAL }
     record Facts(String form,boolean closing,boolean fullTransition,boolean transitioning,boolean entering,boolean edgeHidden) {}
     static boolean entryRequest(String op){
-        return op!=null&&switch(op){case "RESIZE","END_RESIZE","RELEASE","NORMAL","MINI","FULL","CLOSE"->true;default->false;};
+        return op!=null&&switch(op){case "RESIZE","END_RESIZE","NORMAL","MINI","FULL","CLOSE"->true;default->false;};
     }
     static boolean cancelsLaunch(String op){return "CLOSE".equals(op)||"FULL".equals(op);}
     /** Runs after launch cancellation: CLOSE/FULL still cancel a pending launch on an already closing owner. */
@@ -48,12 +48,10 @@ final class WindowControl {
     }
     record Safe(int left,int top,int right,int bottom,float margin) {}
     record Dock(Geometry.Placement placement,int hiddenSide) {}
-    static Dock move(Geometry.Placement p,float x,float y,Safe safe,boolean dock,int displayWidth){
+    static Dock move(Geometry.Placement p,float x,float y,Safe safe,int displayWidth){
         if(!Float.isFinite(x)||!Float.isFinite(y))throw new IllegalArgumentException("position");
-        if(dock){
-            int side=Geometry.hideSide(p,x,displayWidth);if(side!=0)return new Dock(p,side);
-            x=dockX(p,x,safe);
-        }
+        int side=Geometry.hideSide(p,x,displayWidth);if(side!=0)return new Dock(p,side);
+        x=dockX(p,x,safe);
         return new Dock(new Geometry.Placement(p.width(),p.height(),p.scale(),
             Math.max(safe.left,Math.min(x,safe.right-p.width()*p.scale())),
             Math.max(safe.top,Math.min(y,safe.bottom-p.height()*p.scale()))),0);

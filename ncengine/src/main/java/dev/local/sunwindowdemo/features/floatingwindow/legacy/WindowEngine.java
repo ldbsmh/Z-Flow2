@@ -110,7 +110,7 @@ final class WindowEngine {
             data.enforceInterface(Wire.CHANNEL);
             Intent i=Intent.CREATOR.createFromParcel(data);data.enforceNoDataAvail();
             String op=i.getStringExtra("op");
-            if(!java.util.Set.of("RESIZE","END_RESIZE","MOVE","RELEASE","DOCK","MINI","NORMAL","FULL","CLOSE","MINI_SIZE","MUTE","RESTORE_MINI","MINI_DRAG","MINI_DRAG_CANCEL","EDGE_BAR_DRAG","EDGE_BAR_DOCK","EDGE_DRAG_CANCEL").contains(op==null?"":op))return false;
+            if(!java.util.Set.of("RESIZE","END_RESIZE","DOCK","MINI","NORMAL","FULL","CLOSE","MINI_SIZE","MUTE","RESTORE_MINI","MINI_DRAG","MINI_DRAG_CANCEL","EDGE_BAR_DRAG","EDGE_BAR_DOCK","EDGE_DRAG_CANCEL").contains(op==null?"":op))return false;
             handler.post(()->enqueueControl(i));return true;
         }
     };
@@ -125,13 +125,12 @@ final class WindowEngine {
     /**
      * 同时挂起的迷你窗，按“最近使用”排序（末尾最新）。
      *
-     * 以前这里只有一个 pinned，等于引擎只能“一个前台 + 一个挂着的迷你窗”；
-     * 卡片上滑连开第二个应用时，前一个会被 finish 掉。Z-Flow 的
-     * max_freeform_windows 允许 1~5 个，所以换成列表，容量由 [maxWindows] 约束。
+     * 容量是固定值 [MINI_WINDOW_LIMIT]：上游把它做成打开请求携带的参数，
+     * 而 Z-Flow 的设置项 `max_freeform_windows` 已删除，没有任何请求带这个值。
      */
     private volatile java.util.List<Session> pinned=java.util.List.of();
-    /** 同时存在的小窗上限（含前台窗），由打开请求携带，默认 2 与旧行为一致。 */
-    private volatile int maxWindows=2;
+    /** 同时存在的小窗上限（含前台窗）。固定 2：超出时淘汰最旧的迷你窗。 */
+    private static final int MINI_WINDOW_LIMIT=2;
     private boolean visible(Session s){return s!=null&&(s==active||pinned.contains(s));}
     private boolean isPinned(Session s){return s!=null&&pinned.contains(s);}
     /** 追加/刷新一个挂起的迷你窗；同一会话重复调用只更新顺序。 */
@@ -154,7 +153,7 @@ final class WindowEngine {
     }
     /** 超出上限时淘汰最旧的迷你窗，[keep] 一定不会被淘汰。 */
     private void evictPinned(Session keep,String why){
-        int limit=Math.max(1,maxWindows);
+        int limit=MINI_WINDOW_LIMIT;
         while(pinned.size()+(active!=null?1:0)>limit){
             Session oldest=null;
             for(Session p:pinned)if(p!=keep){oldest=p;break;}
@@ -340,7 +339,7 @@ final class WindowEngine {
                         }
                     } catch (Exception e) { return; }
                     String op=i.getStringExtra("op");
-                    if("RESIZE".equals(op)||"END_RESIZE".equals(op)||"MOVE".equals(op)||"RELEASE".equals(op)||"DOCK".equals(op))enqueueControl(i);
+                    if("RESIZE".equals(op)||"END_RESIZE".equals(op)||"DOCK".equals(op))enqueueControl(i);
                     else command(i);
                 }
             }, new IntentFilter(Wire.COMMAND), null, handler, Context.RECEIVER_EXPORTED);
@@ -401,7 +400,7 @@ final class WindowEngine {
             if(i.getIntExtra("protocol",0)!=Wire.PROTOCOL) throw new IllegalStateException("请重启加载 0.2.0 后端");
             if ("CANCEL_OPEN".equals(op)) { cancelRecoveryOpen(i.getStringExtra("token"));return; }
             if ("OPEN".equals(op)) { openGeneration++;cancelRecoveryOpen(null);cancelStart("open");trace.stop();open(new Intent(i).putExtra("generation",openGeneration),0); return; }
-            if ("CLOSE".equals(op)||"NORMAL".equals(op)||"MINI".equals(op)||"FULL".equals(op)||"RESIZE".equals(op)||"END_RESIZE".equals(op)||"RELEASE".equals(op)||"MOVE".equals(op)||"DOCK".equals(op)||"MINI_SIZE".equals(op)||"MUTE".equals(op)||"RESTORE_MINI".equals(op)||"MINI_DRAG".equals(op)||"MINI_DRAG_CANCEL".equals(op)||"EDGE_BAR_DRAG".equals(op)||"EDGE_BAR_DOCK".equals(op)||"EDGE_DRAG_CANCEL".equals(op)) {
+            if ("CLOSE".equals(op)||"NORMAL".equals(op)||"MINI".equals(op)||"FULL".equals(op)||"RESIZE".equals(op)||"END_RESIZE".equals(op)||"DOCK".equals(op)||"MINI_SIZE".equals(op)||"MUTE".equals(op)||"RESTORE_MINI".equals(op)||"MINI_DRAG".equals(op)||"MINI_DRAG_CANCEL".equals(op)||"EDGE_BAR_DRAG".equals(op)||"EDGE_BAR_DOCK".equals(op)||"EDGE_DRAG_CANCEL".equals(op)) {
                 control(i); return;
             }
             if ("RESTORE".equals(op)) {
@@ -1354,24 +1353,20 @@ final class WindowEngine {
                     changeForm(s,target);
                     return;
                 }
-            } else if("RELEASE".equals(op)) {
-                String target=GestureMath.release(p.scale(),s.defaultScale,s.landscape,s.displayW>s.displayH);
-                changeForm(s,target);return;
-            } else if("MOVE".equals(op)||"DOCK".equals(op)) {
+            } else if("DOCK".equals(op)) {
                 if(!"mini".equals(s.frame)||s.edgeHidden)return;
                 float x=i.getFloatExtra("x",p.x()),y=i.getFloatExtra("y",p.y());
                 if(!Float.isFinite(x)||!Float.isFinite(y))throw new IllegalArgumentException("position");
                 Rect safe=s.miniBounds==null?safeArea(a.call(s.task,"getDisplayContent"),false):new Rect(s.miniBounds);
                 float margin=s.placementMargin;
-                WindowControl.Dock moved=WindowControl.move(p,x,y,controlSafe(safe,margin),"DOCK".equals(op),s.displayW);
+                WindowControl.Dock moved=WindowControl.move(p,x,y,controlSafe(safe,margin),s.displayW);
                 if(moved.hiddenSide()!=0){hideMini(s,p,moved.hiddenSide(),y,safe,margin);return;}
                 Geometry.Placement destination=moved.placement();
-                if("DOCK".equals(op)){s.miniPlacement=destination;animate(s,p,destination,false,0,0);return;}
-                s.placement=destination;
+                s.miniPlacement=destination;animate(s,p,destination,false,0,0);
             }
             renderFrame(s);
         }
-        if("RESIZE".equals(op)||"MOVE".equals(op))frameReport(op);else report(op);
+        if("RESIZE".equals(op))frameReport(op);else report(op);
     }
 
     private void endMiniDrag(Session s,boolean cancel){
