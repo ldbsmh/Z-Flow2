@@ -330,7 +330,7 @@ class SettingFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClick
 
     /**
      * 引擎原生开关（[WindowEngineSettings]）改动后镜像到 `corner` 偏好，
-     * 再广播让 SystemUI 重读快照。外观设置只对经典内核生效，不经过这里。
+     * 再广播让 SystemUI 重读快照。
      */
     private val ncSettingsListener =
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->

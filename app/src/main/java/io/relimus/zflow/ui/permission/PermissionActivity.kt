@@ -42,7 +42,6 @@ class PermissionActivity : AppCompatActivity(), View.OnClickListener {
             checkOverlayPermission()
         }
 
-        // 只注册一次：放在点击里会随点击次数累加观察者
         binding.content.materialCardViewOverlayInfo.setOnClickListener(this)
         binding.content.materialCardViewXposedInfo.setOnClickListener(this)
         binding.content.materialCardViewAccessibilityInfo.setOnClickListener(this)
