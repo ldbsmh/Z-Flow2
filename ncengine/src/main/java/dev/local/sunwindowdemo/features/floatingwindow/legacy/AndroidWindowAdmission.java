@@ -39,7 +39,7 @@ final class AndroidWindowAdmission {
             require(WindowAdmission.resize(new WindowAdmission.Resize(freeform,valid,bounds,mode)));
         }finally{if(previous==null)resizeCandidate.remove();else resizeCandidate.set(previous);}
     }
-    WindowEngine.Session snapshot(Object task,String pkg,String token,boolean linked,TaskVisibilityGuard preparedMask)throws Exception{
+    WindowEngine.Session snapshot(Object task,String pkg,String token,boolean linked)throws Exception{
         if(task==null)require(WindowAdmission.Rejection.MISSING);
         WindowEngine.Session s=new WindowEngine.Session();s.task=task;s.taskId=(Integer)a.field(task,"mTaskId");
         s.userId=(Integer)a.field(task,"mUserId");s.pkg=pkg;s.token=token;
@@ -67,7 +67,7 @@ final class AndroidWindowAdmission {
         }
         require(WindowAdmission.override(s.mode,s.bounds.isEmpty(),s.topState));
         s.alwaysOnTop=false;s.parent=a.call(task,"getParent");
-        s.forceTranslucent=preparedMask!=null?preparedMask.originalTranslucent():a.bool(task,"isForceTranslucent");s.restoreTranslucent=true;
+        s.forceTranslucent=a.bool(task,"isForceTranslucent");s.restoreTranslucent=true;
         Rect display=(Rect)a.call(a.call(task,"getDisplayContent"),"getBounds");s.logicalShort=Math.min(display.width(),display.height());
         s.orientationActivity=top;
         return s;

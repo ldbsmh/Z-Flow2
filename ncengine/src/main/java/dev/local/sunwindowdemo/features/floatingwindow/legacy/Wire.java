@@ -13,7 +13,6 @@ final class Wire {
     static final Binder LEASE = new Binder();
     static final String CHANNEL = PKG + ".frames.v16";
     static final int MESSAGE = IBinder.FIRST_CALL_TRANSACTION;
-    static final int PREPARE_BACK=MESSAGE+1,CANCEL_BACK=MESSAGE+2,FINISH_BACK=MESSAGE+3;
     private static volatile IBinder endpoint;
     private static java.util.function.Consumer<Intent> listener;
     private static Intent pendingFrame;
@@ -126,34 +125,6 @@ final class Wire {
         if(requestId==null||requestId.isEmpty()||requestId.length()>128)throw new IllegalArgumentException("status request id");
         sendRequest(context,new Intent(COMMAND).setPackage("android").putExtra("protocol",PROTOCOL)
             .putExtra("op","STATUS").putExtra("package",PKG).putExtra("requestId",requestId));
-    }
-    static boolean prepareBack(int task,String pkg,String token,BackVisual.Pose pose,android.view.SurfaceControl leash){
-        IBinder sink=endpoint;if(sink==null)return false;
-        Parcel data=Parcel.obtain(),reply=Parcel.obtain();
-        try{data.writeInterfaceToken(CHANNEL);data.writeInt(task);data.writeString(pkg);data.writeString(token);
-            data.writeTypedObject(pose==null?null:pose.bounds(),0);data.writeFloat(pose==null?0:pose.radius());
-            data.writeTypedObject(leash,0);
-            if(!sink.transact(PREPARE_BACK,data,reply,0))return false;
-            reply.readException();return reply.readBoolean();
-        }catch(Exception e){return false;}finally{data.recycle();reply.recycle();}
-    }
-    static void cancelBack(String token){
-        IBinder sink=endpoint;if(sink==null)return;Parcel data=Parcel.obtain();
-        try{data.writeInterfaceToken(CHANNEL);data.writeString(token);sink.transact(CANCEL_BACK,data,null,IBinder.FLAG_ONEWAY);}
-        catch(Exception ignored){}finally{data.recycle();}
-    }
-    static android.view.SurfaceControl.Transaction finishBack(String token){
-        IBinder sink=endpoint;if(sink==null)return null;
-        Parcel data=Parcel.obtain(),reply=Parcel.obtain();
-        try{data.writeInterfaceToken(CHANNEL);data.writeString(token);
-            if(!sink.transact(FINISH_BACK,data,reply,0))return null;
-            reply.readException();return reply.readTypedObject(android.view.SurfaceControl.Transaction.CREATOR);
-        }catch(Exception e){return null;}finally{data.recycle();reply.recycle();}
-    }
-    static void back(Context c,String pkg,int task,String token){
-        sendRequest(c,new Intent(COMMAND).setPackage("android").putExtra("protocol",PROTOCOL).putExtra("op","GESTURE")
-            .putExtra("package",pkg).putExtra("taskId",task).putExtra("token",token).putExtra("predictiveEntry",true)
-            .putExtra("hideRecents",new Config(c).hideRecents()));
     }
     static void control(Context c,String op,String token,float value,float x,float y) { control(c,op,token,-1,value,x,y); }
     static void control(Context c,String op,String token,int taskId,float value,float x,float y) {

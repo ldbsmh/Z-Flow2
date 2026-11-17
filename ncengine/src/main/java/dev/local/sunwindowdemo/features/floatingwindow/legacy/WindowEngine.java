@@ -106,23 +106,6 @@ final class WindowEngine {
     private final PathInterpolator modeCurve=new PathInterpolator(.2f,0,0,1);
     private final Binder controlChannel=new Binder(){
         @Override protected boolean onTransact(int code,Parcel data,Parcel reply,int flags) throws RemoteException {
-            if(code==Wire.PREPARE_BACK||code==Wire.CANCEL_BACK||code==Wire.FINISH_BACK){
-                if(uiUid<0||Binder.getCallingUid()!=uiUid)return false;
-                data.enforceInterface(Wire.CHANNEL);
-                if(code==Wire.CANCEL_BACK){String token=data.readString();data.enforceNoDataAvail();handler.post(()->cancelBackPreparation(token));return true;}
-                if(code==Wire.FINISH_BACK){
-                    String token=data.readString();data.enforceNoDataAvail();if(reply==null)return false;
-                    try(android.view.SurfaceControl.Transaction mask=backFinishMask(token)){
-                        reply.writeNoException();reply.writeTypedObject(mask,0);
-                    }return true;
-                }
-                int task=data.readInt();String pkg=data.readString(),token=data.readString();
-                android.graphics.RectF pose=data.readTypedObject(android.graphics.RectF.CREATOR);float radius=data.readFloat();
-                android.view.SurfaceControl leash=data.readTypedObject(android.view.SurfaceControl.CREATOR);data.enforceNoDataAvail();
-                boolean accepted=prepareBack(task,pkg,token,pose,radius,leash);
-                if(leash!=null)leash.release();
-                if(reply!=null){reply.writeNoException();reply.writeBoolean(accepted);}return true;
-            }
             if(code!=Wire.MESSAGE)return super.onTransact(code,data,reply,flags);
             if(!controlUid(Binder.getCallingUid()))return false;
             data.enforceInterface(Wire.CHANNEL);
@@ -150,76 +133,6 @@ final class WindowEngine {
     private volatile java.util.List<Session> pinned=java.util.List.of();
     /** 同时存在的小窗上限（含前台窗），由打开请求携带，默认 2 与旧行为一致。 */
     private volatile int maxWindows=2;
-    private BackPreparation backPreparation;
-    private record BackPreparation(Object task,String token,TaskVisibilityGuard mask,TaskCover cover,IBinder lease){}
-    private boolean prepareBack(int id,String pkg,String token,android.graphics.RectF pose,float radius,android.view.SurfaceControl leash){
-        if(lock==null||handler==null||context==null||!Wire.allowedPackage(pkg)||!Wire.validToken(token))return false;
-        synchronized(lock){try{
-            if(!uiReady||uiLease==null||!uiLease.isBinderAlive()||SystemClock.elapsedRealtime()-uiSeen>3000
-                ||normalOccupied()||pendingStart!=null
-                ||screenBlocked())return false;
-            Object task=find(id);if(task==null||task!=a.focused.invoke(root)||sessionFor(task)!=null||a.integer(task,"getWindowingMode")!=1)return false;
-            ComponentName component=(ComponentName)a.field(task,"realActivity");
-            if(component==null||!pkg.equals(component.getPackageName()))return false;
-            cancelBackPreparation(null);
-            Object parent=a.call(task,"getParent"),display=a.call(task,"getDisplayContent");
-            Rect bounds=(Rect)a.call(display,"getBounds");
-            boolean preview=validBackPose(pose,bounds)&&Float.isFinite(radius)&&radius>=0;
-            // Apps without a Launcher back preview still morph from fullscreen.
-            // Prepare the cover before native cancellation, preserving the same flash guard.
-            RectF from=preview?new RectF(pose):new RectF(bounds);float corner=preview?radius:0;
-            TaskCover cover=new TaskCover(a,context,task,parent,pkg,from,from,corner,corner,1,false);
-            TaskVisibilityGuard mask=cover.mask;
-            BackPreparation prepared=new BackPreparation(task,token,mask,cover,uiLease);backPreparation=prepared;
-            mask.preserveBackdrop();
-            a.call(root,"ensureActivitiesVisible");
-            a.call(wms,"requestTraversal");
-            if(leash!=null&&leash.isValid())try(android.view.SurfaceControl.Transaction tx=new android.view.SurfaceControl.Transaction()){
-                // Keep our own reference after the incoming Parcelable is released.
-                android.view.SurfaceControl owned=android.view.SurfaceControl.class.getDeclaredConstructor(android.view.SurfaceControl.class,String.class)
-                    .newInstance(leash,"NativeComplements-back-preview");
-                handler.postDelayed(owned::release,5000);mask.inTransaction(tx,owned);tx.apply();
-            }
-            handler.postDelayed(()->{synchronized(lock){if(backPreparation==prepared)cancelBackPreparation(token);}},6500);
-            log.accept("BACK_PREPARED task="+id+" preview="+preview+" from="+from);return true;
-        }catch(Throwable failure){cancelBackPreparation(token);log.accept("BACK_PREPARE_FAILED "+FrameworkAccess.reason(failure));return false;}}
-    }
-    private static boolean validBackPose(android.graphics.RectF p,Rect d){
-        return p!=null&&Float.isFinite(p.left)&&Float.isFinite(p.top)&&Float.isFinite(p.right)&&Float.isFinite(p.bottom)
-            &&p.width()>0&&p.height()>0&&p.width()<=d.width()*1.05f&&p.height()<=d.height()*1.05f
-            &&p.right>d.left&&p.left<d.right&&p.bottom>d.top&&p.top<d.bottom;
-    }
-    private android.view.SurfaceControl.Transaction backFinishMask(String token){
-        if(lock==null)return null;
-        synchronized(lock){
-            BackPreparation p=backPreparation;
-            if(p==null||!p.token.equals(token)||p.lease!=uiLease||!p.lease.isBinderAlive()||!p.mask.holding())return null;
-            android.view.SurfaceControl.Transaction mask=new android.view.SurfaceControl.Transaction();
-            try{
-                p.mask.inTransaction(mask,null);
-                mask.addTransactionCommittedListener(handler::post,()->repairBackMask(p));
-                return mask;
-            }catch(RuntimeException error){mask.close();throw error;}
-        }
-    }
-    private void repairBackMask(BackPreparation prepared){
-        synchronized(lock){
-            if(prepared.mask.holding())try{prepared.mask.hide();}catch(Exception ignored){}
-            else{Session owner=sessionFor(prepared.task);TaskVisibilityGuard next=owner==null?null:presentationMask(owner);
-                if(next!=null&&next.holding())prepared.mask.continueWith(next);
-                else prepared.mask.afterTransaction(owner==null?1:presentationAlpha(owner));}
-        }
-    }
-    private void cancelBackPreparation(String token){
-        if(lock==null)return;
-        synchronized(lock){BackPreparation p=backPreparation;if(p==null||token!=null&&!p.token.equals(token))return;
-            backPreparation=null;
-            if(p.cover!=null)p.cover.close();else try{p.mask.release();}catch(Exception ignored){}
-            try{a.call(root,"ensureActivitiesVisible");a.call(wms,"requestTraversal");}
-            catch(Exception error){log.accept("BACK_BACKDROP_RESTORE_FAILED "+FrameworkAccess.reason(error));}
-            log.accept("BACK_PREPARATION_RELEASED");
-        }
-    }
     private boolean visible(Session s){return s!=null&&(s==active||pinned.contains(s));}
     private boolean isPinned(Session s){return s!=null&&pinned.contains(s);}
     /** 追加/刷新一个挂起的迷你窗；同一会话重复调用只更新顺序。 */
@@ -494,7 +407,6 @@ final class WindowEngine {
                 return;
             }
             if ("CANCEL_OPEN".equals(op)) { cancelRecoveryOpen(i.getStringExtra("token"));return; }
-            if ("GESTURE".equals(op)) { openGeneration++;cancelRecoveryOpen(null);cancelStart("gesture");trace.stop();gestureStart(new Intent(i).putExtra("generation",openGeneration));return; }
             if ("OPEN".equals(op)) { openGeneration++;cancelRecoveryOpen(null);cancelStart("open");trace.stop();open(new Intent(i).putExtra("generation",openGeneration),0); return; }
             if ("CLOSE".equals(op)||"NORMAL".equals(op)||"MINI".equals(op)||"FULL".equals(op)||"RESIZE".equals(op)||"END_RESIZE".equals(op)||"RELEASE".equals(op)||"MOVE".equals(op)||"DOCK".equals(op)||"MINI_SIZE".equals(op)||"MUTE".equals(op)||"RESTORE_MINI".equals(op)||"MINI_DRAG".equals(op)||"MINI_DRAG_CANCEL".equals(op)||"EDGE_BAR_DRAG".equals(op)||"EDGE_BAR_DOCK".equals(op)||"EDGE_DRAG_CANCEL".equals(op)) {
                 control(i); return;
@@ -551,7 +463,7 @@ final class WindowEngine {
                 }
             }
             trace.arm(pkg,openGeneration);
-            s.entryFade=i.getBooleanExtra("predictiveEntry",false)||!i.getBooleanExtra("morphEntry",false);
+            s.entryFade=!i.getBooleanExtra("morphEntry",false);
             bindLease(s,lease);
             try {
                 save(s); // Durable original state BEFORE the first task mutation.
@@ -588,18 +500,6 @@ final class WindowEngine {
                         if(previous!=null&&displaced==null&&previous!=s)retainPinned(previous,"超出小窗上限");
                         frameReport("ENTRY_TOUCH_GUARD");
                         a.call(a.field(s.task,"mTransitionController"),"setNoAnimation",new Class<?>[]{a.wc},s.task);
-                        BackPreparation prepared=backPreparation;
-                        if(prepared!=null&&prepared.task==s.task&&prepared.token.equals(s.token)&&prepared.lease==lease){
-                            prepared.mask.adoptBackdrop();
-                            backPreparation=null;
-                            if(prepared.cover!=null){
-                                s.entryFade=false;s.cover=prepared.cover;s.coverDrawn=false;s.coverFullscreen=false;
-                                s.cover.entryDecorations(true);
-                                s.cover.beforeReveal(()->renderFrame(s));
-                                s.cover.resumeTo(visualBounds(s.placement),a.config(s.task,false).densityDpi/160f*MotionStyle.radius(s.placement.scale(),s.defaultScale));
-                                coverTasks.put(s.task,s);pollCover(s,s.cover);
-                            }else s.startMask=prepared.mask;
-                        }
                         beginCover(s,s.entryFade?s.placement:new Geometry.Placement(s.displayW,s.displayH,1,0,0),s.placement,false);
                         a.opacity(s.task,0);
                         a.call(s.task,"setForceTranslucent",new Class<?>[]{boolean.class},true);
@@ -634,7 +534,7 @@ final class WindowEngine {
                 else lease.unlinkToDeath(s.death,0);
                 throw e;
             }
-        } catch (Throwable e) { cancelBackPreparation(i.getStringExtra("token"));completeOpen(i,false);note("BLOCKED：" + FrameworkAccess.reason(e) + "\n" + capabilities()); }
+        } catch (Throwable e) { completeOpen(i,false);note("BLOCKED：" + FrameworkAccess.reason(e) + "\n" + capabilities()); }
     }
 
     private void open(Intent request,int attempt) {
@@ -794,7 +694,7 @@ final class WindowEngine {
         Intent request=recoveryOpen;
         if(request==null||token!=null&&!token.equals(request.getStringExtra("token")))return;
         if(request.getLongExtra("generation",-1)==openGeneration)openGeneration++;
-        clearShortcutLaunch(request.getLongExtra("generation",-1));cancelBackPreparation(request.getStringExtra("token"));
+        clearShortcutLaunch(request.getLongExtra("generation",-1));
         completeOpen(request,false);
     }
     private void fillOpenWait(Intent result){
@@ -1840,9 +1740,7 @@ final class WindowEngine {
     private Session snapshot(int taskId,String pkg,String token)throws Exception{return snapshot(taskId,pkg,token,false);}
     private Session snapshot(int taskId, String pkg, String token,boolean linked) throws Exception {
         Object task = taskForOpen(taskId,pkg);
-        BackPreparation prepared=backPreparation;
-        TaskVisibilityGuard mask=prepared!=null&&prepared.task==task&&prepared.token.equals(token)?prepared.mask:null;
-        Session s=new AndroidWindowAdmission(a,atm,resizeCandidate).snapshot(task,pkg,token,linked,mask);
+        Session s=new AndroidWindowAdmission(a,atm,resizeCandidate).snapshot(task,pkg,token,linked);
         Object top=s.orientationActivity;
         s.landscape=initialLandscape(top,pkg,s.userId);
         s.orientationActivity=top;
@@ -1863,7 +1761,7 @@ final class WindowEngine {
         if(!request.hasExtra("entryBegan"))log.accept("ENTRY_WAIT task="+request.getIntExtra("taskId",-1));
         Intent retry=new Intent(request).putExtra("entryBegan",began);long generation=openGeneration;
         handler.postDelayed(()->{
-            if(generation!=openGeneration){cancelBackPreparation(retry.getStringExtra("token"));completeOpen(retry,false);return;}
+            if(generation!=openGeneration){completeOpen(retry,false);return;}
             command(retry);
         },32);
         return true;
@@ -2298,19 +2196,6 @@ final class WindowEngine {
             return true;
         }catch(Exception e){return false;}
     }
-    private void gestureStart(Intent request){
-        try{
-            if(waitForRecovery(request,()->gestureStart(request)))return;
-            if(normalOccupied())throw new IllegalStateException("默认窗已被占用");
-            synchronized(lock){
-                Object task=find(request.getIntExtra("taskId",-1));
-                if(task==null)throw new IllegalStateException("手势任务已结束");
-                ComponentName component=(ComponentName)a.field(task,"realActivity");
-                if(component==null||!component.getPackageName().equals(request.getStringExtra("package")))throw new IllegalStateException("手势任务已变化");
-            }
-            command(new Intent(request).putExtra("op","START").putExtra("morphEntry",true));
-        }catch(Exception e){cancelBackPreparation(request.getStringExtra("token"));completeOpen(request,false);note("GESTURE_FAILED："+FrameworkAccess.reason(e));}
-    }
     boolean owns(Object task) { Session s=sessionFor(task);return s!=null&&!s.restoring; }
     /** No floating session: session-scoped hooks keep the native result without any reflection. */
     boolean idle(){return sessions.isEmpty();}
@@ -2703,21 +2588,12 @@ final class WindowEngine {
     // Native mode/bounds are already freeform when Shell receives this transaction.
     // Keep retained tasks invisible and repair any late Shell alpha/position reset.
     void transitionBuilt(Object transition,Object info,android.view.SurfaceControl.Transaction finish){
-        if(lock==null||sessions.isEmpty()&&backPreparation==null)return;
+        if(lock==null||sessions.isEmpty())return;
         try{synchronized(lock){
             java.util.List<?> targets=(java.util.List<?>)a.field(transition,"mTargets");
             java.util.List<?> changes=(java.util.List<?>)a.call(info,"getChanges");
             if(targets.size()!=changes.size())return;
             android.view.SurfaceControl.Transaction start=(android.view.SurfaceControl.Transaction)a.field(transition,"mStartTransaction");
-            BackPreparation prepared=backPreparation;
-            if(prepared!=null)for(int i=0;i<targets.size();i++){
-                Object container=a.field(targets.get(i),"mContainer"),change=changes.get(i);
-                if(!belongsTo(container,prepared.task))continue;
-                android.view.SurfaceControl leash=(android.view.SurfaceControl)a.call(change,"getLeash");
-                prepared.mask.inTransaction(start,leash);prepared.mask.inTransaction(finish,leash);
-                Runnable repair=()->repairBackMask(prepared);
-                start.addTransactionCommittedListener(handler::post,repair::run);finish.addTransactionCommittedListener(handler::post,repair::run);
-            }
             Session expanded=active;
             if(expanded!=null&&"normal".equals(expanded.frame)){
                 // buildFinishTransaction runs after collection on this framework.

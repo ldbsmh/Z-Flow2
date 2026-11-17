@@ -48,13 +48,9 @@ public final class BackBridge extends XposedModule {
         Context app=c.getApplicationContext();
         try{
             if(context==null){
-                BroadcastReceiver visual=new BroadcastReceiver(){public void onReceive(Context c,Intent i){BackVisual.receive(app,i,getSentFromUid());}};
-                app.registerReceiver(visual,new IntentFilter(BackVisual.STATE),null,main,Context.RECEIVER_EXPORTED);
-                try{
-                    app.registerReceiver(new BroadcastReceiver(){public void onReceive(Context c,Intent i){
-                        if(getSentFromUid()==android.os.Process.myUid())configure(i);
-                    }},new IntentFilter(SystemUiHost.STATE),null,main,Context.RECEIVER_EXPORTED);
-                }catch(RuntimeException failure){app.unregisterReceiver(visual);throw failure;}
+                app.registerReceiver(new BroadcastReceiver(){public void onReceive(Context c,Intent i){
+                    if(getSentFromUid()==android.os.Process.myUid())configure(i);
+                }},new IntentFilter(SystemUiHost.STATE),null,main,Context.RECEIVER_EXPORTED);
                 context=app;
             }
             SystemUiHost.start(app);
