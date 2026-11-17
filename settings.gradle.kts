@@ -18,6 +18,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Z-Flow"
+rootProject.name = "Z-Flow2"
 include(":app")
 include(":ncengine")
