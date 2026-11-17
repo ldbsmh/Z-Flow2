@@ -60,7 +60,7 @@ public final class SystemUiHost extends ContextWrapper implements ComponentCallb
             main.post(()->{settingsReady=true;reloadSettings();});
         }catch(Exception e){
             // The module process may be stopped (force-stop/stay-stopped, task cleaners). The host keeps the
-            // last complete snapshot already copied into its own preferences, including the enabled switch.
+            // last complete snapshot already copied into its own preferences.
             boolean cached;
             try{cached=!config.prefs.getAll().isEmpty();}catch(RuntimeException locked){cached=false;}
             if(settingsFailures++==0)android.util.Log.w("NativeComplements","SETTINGS_READ_FAILED cached="+cached,e);
@@ -79,13 +79,6 @@ public final class SystemUiHost extends ContextWrapper implements ComponentCallb
     private void resumePoll(){if(cleaned||polling)return;polling=true;main.post(poll);}
     private void reloadSettings(){
         if(cleaned)return;
-        if(!config.enabled()){
-            cancelOpenWait();
-            if(controls!=null){
-                if("active".equals(backendState)||"recovery".equals(backendState))Wire.send(this,"RESTORE");
-                hideControls();
-            }
-        }
         // 快照刚更新：露出比例等只影响摆位的设置要就地重排，不必等引擎再发一帧。
         if(controls!=null)controls.relayout();
         for(WindowControls c:minis.values())c.relayout();
@@ -167,7 +160,6 @@ public final class SystemUiHost extends ContextWrapper implements ComponentCallb
         }
     }
     private int suggestionImeTop=Integer.MAX_VALUE;
-    private volatile boolean backendReady;
     private volatile String backendState="";
     private final BroadcastReceiver backendReceiver=new BroadcastReceiver(){public void onReceive(Context c,Intent i){
         if(getSentFromUid()!=1000||i.getIntExtra("protocol",0)!=Wire.PROTOCOL)return;
@@ -176,12 +168,6 @@ public final class SystemUiHost extends ContextWrapper implements ComponentCallb
     private void receiveFrame(Intent i){
         if(cleaned||controls==null)return;
         backendState=i.getStringExtra("state");
-        backendReady=!"conflict".equals(backendState)&&!i.getBooleanExtra("ownershipConflict",false);
-        if(!backendReady){
-            cancelOpenWait();hideControls();
-            // No owner environment is available: fail closed for shared overlays and edge admission.
-            foreground="";systemFocus=true;keyboard=true;updateOverlayPriority();publish(false);return;
-        }
         updateOpenWait(i);
         if(i.hasExtra("foreground")){foreground=i.getStringExtra("foreground");keyboard=i.getBooleanExtra("imeVisible",false);systemFocus=i.getBooleanExtra("systemOverlay",false);
             systemOverlayTitle=i.getStringExtra("systemOverlayTitle");
@@ -194,7 +180,7 @@ public final class SystemUiHost extends ContextWrapper implements ComponentCallb
         pinnedTasks.clear();
         for(Intent frame:pinnedFrames){int id=frame.getIntExtra("taskId",-1);if(id>0)pinnedTasks.add(id);}
         publish(false);
-        try{if(!config.enabled()||!getSystemService(android.os.PowerManager.class).isInteractive()||getSystemService(KeyguardManager.class).isKeyguardLocked())hideControls();else {controls.update(i);
+        try{if(!getSystemService(android.os.PowerManager.class).isInteractive()||getSystemService(KeyguardManager.class).isKeyguardLocked())hideControls();else {controls.update(i);
             syncControlsOcclusion();
             java.util.Set<Integer> live=new java.util.HashSet<>();
             for(Intent frame:pinnedFrames){
@@ -284,7 +270,7 @@ public final class SystemUiHost extends ContextWrapper implements ComponentCallb
         String token=frame.getStringExtra("waitingToken"),pkg=frame.getStringExtra("waitingPackage");
         boolean waiting=frame.getBooleanExtra("waitingOpen",false);
         boolean valid=Wire.validToken(token)&&Wire.allowedPackage(pkg);
-        boolean permitted=waiting&&valid&&ready()&&config.enabled()&&getSystemService(android.os.PowerManager.class).isInteractive()
+        boolean permitted=waiting&&valid&&ready()&&getSystemService(android.os.PowerManager.class).isInteractive()
             &&!getSystemService(KeyguardManager.class).isKeyguardLocked();
         OpenWaitState.Change change=openWaitState.update(true,waiting,valid,permitted,token,pkg);
         if(change==OpenWaitState.Change.KEEP)return;

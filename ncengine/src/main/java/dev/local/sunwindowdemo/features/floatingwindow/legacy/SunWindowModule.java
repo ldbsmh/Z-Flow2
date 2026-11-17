@@ -27,12 +27,7 @@ public final class SunWindowModule extends XposedModule {
             startup=hook(main).setExceptionMode(XposedInterface.ExceptionMode.PROTECTIVE).intercept(chain->{
                 if(!selected[0]){selected[0]=true;
                     try{
-                        int eligibility=dev.local.sunwindowdemo.core.WindowBackendEligibility.readSystem(loader,Wire.PKG);
-                        String owner=dev.local.sunwindowdemo.core.WindowBackendOwnership.claimEligible(Wire.PKG,eligibility);
-                        boolean delegated=eligibility==0&&dev.local.sunwindowdemo.core.ModuleIdentity.FULL_PACKAGE.equals(Wire.PKG);
-                        note("WINDOW_BACKEND_SELECTED eligibility="+eligibility+" owner="+owner);
-                        if(!Wire.PKG.equals(owner))WindowBackendConflict.install(this,loader,owner,delegated,this::note);
-                        else installBackend(p);
+                        installBackend(p);
                     }catch(Throwable unavailable){note("WINDOW_STARTUP_UNAVAILABLE "+FrameworkAccess.reason(unavailable));}
                 }
                 return chain.proceed();

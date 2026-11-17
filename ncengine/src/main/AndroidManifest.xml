@@ -7,18 +7,6 @@
     <uses-permission android:name="${applicationId}.CONTROL" />
 
     <application>
-        <!-- 后端启用状态投影：仅在包升级/开机时把开关同步到 PM 组件状态 -->
-        <receiver
-            android:name=".core.WindowBackendEligibility"
-            android:enabled="true"
-            android:exported="false"
-            android:directBootAware="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-            </intent-filter>
-        </receiver>
-
         <!-- SystemUI 宿主读取设置的唯一入口（UID 校验） -->
         <provider
             android:name=".ConfigProvider"

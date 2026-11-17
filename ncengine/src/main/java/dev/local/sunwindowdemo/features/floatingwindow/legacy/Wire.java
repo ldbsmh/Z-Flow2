@@ -6,7 +6,7 @@ import android.os.*;
 import java.util.UUID;
 
 final class Wire {
-    static final String PKG = dev.local.sunwindowdemo.core.ModuleIdentity.CURRENT.packageName();
+    static final String PKG = BuildConfig.MODULE_PACKAGE;
     static final String COMMAND = PKG + ".COMMAND", RESULT = PKG + ".RESULT";
     static final String PERMISSION = PKG + ".CONTROL";
     static final int PROTOCOL = 16;
@@ -94,8 +94,8 @@ final class Wire {
         // 原来只在 SystemUI 侧附带，宿主开窗时 endOnClose / keepEdgeAwake /
         // landscapeShareWindow 永远落在引擎默认值上，设置页等于假开关。
         Config config=new Config(context);
-        i.putExtra("landscapeShareWindow",config.enabled()&&config.landscapeShareWindow())
-            .putExtra("endOnClose",config.endOnClose()).putExtra("keepEdgeAwake",config.enabled()&&config.keepEdgeAwake())
+        i.putExtra("landscapeShareWindow",config.landscapeShareWindow())
+            .putExtra("endOnClose",config.endOnClose()).putExtra("keepEdgeAwake",config.keepEdgeAwake())
             .putExtra("windowDim",config.windowDim()).putExtra("autoMinimizeOnOpen",config.autoMinimizeOnOpen());
         if(BackBridge.PACKAGE.equals(context.getPackageName())){
             i.putExtra("hostReady",SystemUiHost.live!=null&&SystemUiHost.live.ready());

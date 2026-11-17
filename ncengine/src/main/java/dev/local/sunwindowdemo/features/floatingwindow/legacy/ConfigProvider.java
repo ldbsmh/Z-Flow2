@@ -18,8 +18,7 @@ public final class ConfigProvider extends ContentProvider {
         } catch(android.content.pm.PackageManager.NameNotFoundException e){throw new SecurityException(e);}
         if("targets".equals(method))throw new IllegalArgumentException("targets retired");
         if(!"read".equals(method))throw new IllegalArgumentException("method");
-        new Config(getContext()); // Migrate before exporting, even if the manager has not opened yet.
-        dev.local.sunwindowdemo.core.WindowBackendEligibility.refreshAsync(getContext());
+        new Config(getContext()); // Resolve the host preference file before exporting.
         Bundle out=new Bundle();
         for(var e:getContext().getSharedPreferences("corner",0).getAll().entrySet()){
             Object v=e.getValue();String k=e.getKey();
