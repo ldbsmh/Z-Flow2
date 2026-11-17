@@ -1,15 +1,15 @@
-name: Build Z-Flow Release
+name: Build Z-Flow2 Release
 
 on:
-  # master 是正式发布分支；import 是当前的默认开发分支（推送到此即编译，便于验证修复）。
+  # main 是默认分支，推送即编译，便于验证修复。
   push:
-    branches: [ master, import ]
+    branches: [ main ]
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - '**.txt'
   pull_request:
-    branches: [ master, import ]
+    branches: [ main ]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -110,7 +110,7 @@ jobs:
             echo "No APK produced" >&2
             exit 1
           fi
-          DEST="app/build/outputs/apk/release/Z-Flow-v${{ steps.ver.outputs.version_name }}-build${{ steps.ver.outputs.build_number }}.apk"
+          DEST="app/build/outputs/apk/release/Z-Flow2-v${{ steps.ver.outputs.version_name }}-build${{ steps.ver.outputs.build_number }}.apk"
           if [ "$SRC" != "$DEST" ]; then
             mv "$SRC" "$DEST"
           fi
@@ -120,14 +120,14 @@ jobs:
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: Z-Flow-v${{ steps.ver.outputs.version_name }}-build${{ steps.ver.outputs.build_number }}
+          name: Z-Flow2-v${{ steps.ver.outputs.version_name }}-build${{ steps.ver.outputs.build_number }}
           path: ${{ steps.rename.outputs.apk_path }}
           retention-days: 14
 
       - name: Build summary
         run: |
           {
-            echo "### Z-Flow 构建完成"
+            echo "### Z-Flow2 构建完成"
             echo ""
             echo "| 项目 | 值 |"
             echo "| --- | --- |"

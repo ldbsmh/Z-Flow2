@@ -45,8 +45,8 @@ class SettingFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClick
         private val TOP_LEVEL_KEYS =
             listOf(KEY_TRIGGER, KEY_RULES, KEY_KEEPALIVE, KEY_ADVANCED)
 
-        private const val URL_OPEN_API = "https://github.com/ldbsmh/Z-Flow/blob/import/open_api_zh-Hans.md"
-        private const val URL_SOURCE = "https://github.com/ldbsmh/Z-Flow"
+        private const val URL_OPEN_API = "https://github.com/ldbsmh/Z-Flow2/blob/main/docs/open-api_zh-Hans.md"
+        private const val URL_SOURCE = "https://github.com/ldbsmh/Z-Flow2"
 
         fun newInstance(rootKey: String): SettingFragment {
             return SettingFragment().apply {

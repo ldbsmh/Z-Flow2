@@ -1,6 +1,6 @@
 # NC 引擎接入 Z-Flow：功能状态总结
 
-> 截至 2026-11-17（`import` 分支，本轮精简后）。技术细节见 [nc-window-engine.md](nc-window-engine.md)，
+> 截至 2026-11-17（`main` 分支）。技术细节见 [nc-window-engine.md](nc-window-engine.md)，
 > 本文只回答一个问题：**哪些功能已经接入，哪些没有，为什么。**
 
 ## 0. 背景速览
@@ -38,7 +38,7 @@ Z-Flow 只有一个小窗内核：**NC 引擎**。没有内核选择器、没有
 | **通知栏小窗按钮** | `notify_freeform`，HookNotificationAction → `SOURCE_NOTIFICATION`；`openNotification` 保留通知的着陆 Activity；**入口受 Z-Flow 通知白名单（Room `notification_apps`）约束** |
 | **底角上滑轮盘** | `radial_gesture_enable`，Launcher 手势 hook → `SOURCE_RADIAL`；从可配置的底角触发区斜向上滑，三环最多 13 个应用，松手即以小窗打开 |
 | 侧边栏快捷应用 | Z-Flow 自己的悬浮侧边栏选应用后走统一链路 |
-| 开放 API | `open_api_zh-Hans.md` 的两个入口（`start_freeform` 广播 / 快捷磁贴），都落到 `FreeformRequestReceiver` |
+| 开放 API | `open-api_zh-Hans.md` 的两个入口（`start_freeform` 广播 / 快捷磁贴），都落到 `FreeformRequestReceiver` |
 
 ### 1.2 窗口形态与交互
 
@@ -127,7 +127,7 @@ NC 的角落扇形菜单已删，斜滑菜单由 Z-Flow 自己的轮盘承担：
 
 | 删除项 | 理由 |
 |---|---|
-| **角落扇形菜单全套**（FanView/HotspotView/CornerGesture/快捷操作面板） | 斜向滑动呼出的应用扇区与 Z-Flow 自己的轮盘高度拟合（轮盘来自 `feat/radial-gesture`，本轮已合回 `import`）；连同扇区专属的快捷操作（Wi-Fi/免打扰/截屏/录屏/亮度/音量/媒体控制，`WindowQuickHost` + `QuickActionCatalog`）、热区参数（`Config` 里 heat/distance/radius/icon/fanCount 等 10 项）、`LauncherGuard`（Pixel Launcher hook）一并移除 |
+| **角落扇形菜单全套**（FanView/HotspotView/CornerGesture/快捷操作面板） | 斜向滑动呼出的应用扇区与 Z-Flow 自己的轮盘高度拟合（轮盘来自 `feat/radial-gesture`，已合回 `main`）；连同扇区专属的快捷操作（Wi-Fi/免打扰/截屏/录屏/亮度/音量/媒体控制，`WindowQuickHost` + `QuickActionCatalog`）、热区参数（`Config` 里 heat/distance/radius/icon/fanCount 等 10 项）、`LauncherGuard`（Pixel Launcher hook）一并移除 |
 | **外观设置 8 项接入**（`WindowSettings` Bundle 通道、`SETTINGS` 指令、`dockStyle`/`maxWindows` extra），以及设置页里对应的 8 个条目 | 引擎已有长按调整大小；尺寸/比例/变暗/贴边样式交回引擎默认值，设置项留着也是假开关 |
 | **通知点击接管**（`NotificationWindow`，从未安装的死代码） | Z-Flow 自己的通知钩子（带白名单）已覆盖 |
 | **录屏 QS 磁贴适配**（`WindowTools`） | 只服务于扇区的「录屏」快捷操作 |
