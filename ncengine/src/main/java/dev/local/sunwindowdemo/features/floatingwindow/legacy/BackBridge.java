@@ -28,17 +28,11 @@ public final class BackBridge extends XposedModule {
                 .setExceptionMode(XposedInterface.ExceptionMode.PROTECTIVE).intercept(chain->{
                     Object result=chain.proceed();Application app=(Application)chain.getArg(0);
                     if(PACKAGE.equals(app.getPackageName()))main.post(()->{
-                        ProductFeatures.connectSystemUi(app,this::note);
                         try{connect(app);}catch(Exception e){note("HOST_FAILED "+e);}
                     });
                     return result;
                 });
         }catch(Exception e){note("HOST_BOOT_HOOK_FAILED "+e);}
-        ProductFeatures.installSystemUi(this,p.getDefaultClassLoader(),this::note);
-        ProductFeatures.installNotifications(this,p.getDefaultClassLoader(),this::note);
-        // 通知点击开小窗由 Z-Flow 自己的通知钩子负责（再叠加会一次点击开两个窗口），
-        // 这里不安装上游的通知接管。
-        note("NOTIFICATION_WINDOW_SKIPPED host-owns-entry");
         installScreenshotHooks(p.getDefaultClassLoader());
     }
     private Runnable reconnect;

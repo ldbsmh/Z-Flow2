@@ -37,7 +37,6 @@ final class WindowEngine {
         TaskCleanupGuard guard=new TaskCleanupGuard(log);
         if(guard.install(module,loader))cleanup=guard;
     }
-    private Consumer<Intent> suggestionInput;
     private boolean visibleResumeReady;
     void visibleResumeReady(){visibleResumeReady=true;}
     private IBinder frameSink;
@@ -317,7 +316,6 @@ final class WindowEngine {
                 try{dev.local.sunwindowdemo.features.iconlayers.IconAssets.connect(context);}
                 catch(RuntimeException unavailable){log.accept("ICON_ASSETS_UNAVAILABLE "+unavailable.getClass().getSimpleName());}
                 audio=WindowAudio.create(context,handler,log);
-                suggestionInput=ProductFeatures.createInput(a,context,root,lock,handler,log);
                 try{frames=(Choreographer)Choreographer.class.getDeclaredMethod("getSfInstance").invoke(null);}
                 catch(Exception e){frames=Choreographer.getInstance();log.accept("SF_CLOCK_FALLBACK "+e.getClass().getSimpleName());}
             });
@@ -401,11 +399,6 @@ final class WindowEngine {
                 report("STATUS",requestId);return;
             }
             if(i.getIntExtra("protocol",0)!=Wire.PROTOCOL) throw new IllegalStateException("请重启加载 0.2.0 后端");
-            if ("OTP_INPUT".equals(op)) {
-                if(suggestionInput!=null)suggestionInput.accept(i);
-                else{ResultReceiver receiver=i.getParcelableExtra("inputReply",ResultReceiver.class);if(receiver!=null)receiver.send(0,null);}
-                return;
-            }
             if ("CANCEL_OPEN".equals(op)) { cancelRecoveryOpen(i.getStringExtra("token"));return; }
             if ("OPEN".equals(op)) { openGeneration++;cancelRecoveryOpen(null);cancelStart("open");trace.stop();open(new Intent(i).putExtra("generation",openGeneration),0); return; }
             if ("CLOSE".equals(op)||"NORMAL".equals(op)||"MINI".equals(op)||"FULL".equals(op)||"RESIZE".equals(op)||"END_RESIZE".equals(op)||"RELEASE".equals(op)||"MOVE".equals(op)||"DOCK".equals(op)||"MINI_SIZE".equals(op)||"MUTE".equals(op)||"RESTORE_MINI".equals(op)||"MINI_DRAG".equals(op)||"MINI_DRAG_CANCEL".equals(op)||"EDGE_BAR_DRAG".equals(op)||"EDGE_BAR_DOCK".equals(op)||"EDGE_DRAG_CANCEL".equals(op)) {

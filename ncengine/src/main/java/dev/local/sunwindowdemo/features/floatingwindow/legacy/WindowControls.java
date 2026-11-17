@@ -591,28 +591,6 @@ final class WindowControls {
         if(!nativeHandle&&views.size()>5)views.get(5).invalidate();
         changed();
     }
-    int[] protectedRects(){
-        int[] bounds=unoccludedProtectedRects();
-        if(bounds.length!=4||!"mini".equals(frame))return bounds;
-        Rect visible=largestUncovered(new Rect(bounds[0],bounds[1],bounds[2],bounds[3]),normalOcclusion);
-        return visible.isEmpty()?new int[0]:new int[]{visible.left,visible.top,visible.right,visible.bottom};
-    }
-    private int[] unoccludedProtectedRects(){
-        if(systemBlocked||transitioning&&!inputPending)return new int[0];
-        // Keep the existing one-rectangle GestureGate contract. Protect the
-        // compact buttons, rather than the potentially wide landscape preview.
-        if(edgeHidden&&!params.isEmpty()&&views.get(0).getVisibility()==View.VISIBLE){
-            WindowManager.LayoutParams p=params.get(0);return new int[]{p.x,p.y,p.x+p.width,p.y+p.height};
-        }
-        if(menuActions!=null&&!params.isEmpty()){
-            WindowManager.LayoutParams p=params.get(0);
-            int width=menuActions.getLayoutParams().width,height=menuActions.getLayoutParams().height;
-            int left=p.x+(p.width-width)/2,top=p.y+(p.height-height)/2;
-            return new int[]{left,top,left+width,top+height};
-        }
-        WindowManager.LayoutParams p=views.size()>5&&views.get(5).getVisibility()==View.VISIBLE?params.get(5):null;
-        return p==null?new int[0]:new int[]{p.x,p.y,p.x+p.width,p.y+p.height};
-    }
     // SunOS pinned_window_overlay.xml: 42dp light circular actions, 18dp
     // original vector icons, 20dp spacing; mute first, then scale.
     private class MiniAction extends ImageButton {

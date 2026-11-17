@@ -62,18 +62,6 @@ final class Wire {
             .putExtra("token", token).putExtra("landscape", landscape).putExtra("hideRecents",new Config(context).hideRecents());
         sendRequest(context,i);
     }
-    static void openIntent(Context context,String pkg,Intent original,ResultReceiver reply){
-        if(!allowedPackage(pkg)||original==null||!pkg.equals(original.getPackage()))throw new IllegalArgumentException("suggestion target");
-        Intent target=new Intent(original).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        ActivityOptions options=ActivityOptions.makeBasic();
-        // This capability is created only by an explicit suggestion-button click.
-        options.setPendingIntentCreatorBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS);
-        PendingIntent launch=PendingIntent.getActivity(context,UUID.randomUUID().hashCode(),target,PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_ONE_SHOT,options.toBundle());
-        Intent request=new Intent(COMMAND).setPackage("android").putExtra("protocol",PROTOCOL).putExtra("op","OPEN")
-            .putExtra("package",pkg).putExtra("taskId",-1).putExtra("token",token())
-            .putExtra("hideRecents",new Config(context).hideRecents()).putExtra("shortcutLaunch",launch).putExtra("shortcutUser",android.os.Process.myUserHandle());
-        request.putExtra("openReply",reply);sendRequest(context,request);
-    }
     static void openApp(Context context,String pkg,boolean wakeStep){
         openApp(context,pkg,-1,wakeStep,false);
     }
@@ -101,11 +89,6 @@ final class Wire {
         if(fill!=null)request.putExtra("launchFillIn",new Intent(fill));
         sendRequest(context,request);
     }
-    static void inputDigits(Context context,String digits,int delay,ResultReceiver receiver){
-        Intent request=new Intent(COMMAND).setPackage("android").putExtra("protocol",PROTOCOL).putExtra("op","OTP_INPUT")
-            .putExtra("token",token()).putExtra("digits",digits).putExtra("delay",delay).putExtra("inputReply",receiver);
-        sendRequest(context,request);
-    }
     private static void sendRequest(Context context,Intent i){
         // 宿主（Z-Flow）与 SystemUI 都会发起请求：配置项两边都要带。
         // 原来只在 SystemUI 侧附带，宿主开窗时 endOnClose / keepEdgeAwake /
@@ -121,11 +104,6 @@ final class Wire {
         context.sendBroadcast(i, null, BroadcastOptions.makeBasic().setShareIdentityEnabled(true).toBundle());
     }
     static void send(Context c, String op) { send(c, op, PKG, -1, null, false); }
-    static void requestStatus(Context context,String requestId){
-        if(requestId==null||requestId.isEmpty()||requestId.length()>128)throw new IllegalArgumentException("status request id");
-        sendRequest(context,new Intent(COMMAND).setPackage("android").putExtra("protocol",PROTOCOL)
-            .putExtra("op","STATUS").putExtra("package",PKG).putExtra("requestId",requestId));
-    }
     static void control(Context c,String op,String token,float value,float x,float y) { control(c,op,token,-1,value,x,y); }
     static void control(Context c,String op,String token,int taskId,float value,float x,float y) {
         Intent i=new Intent(COMMAND).setPackage("android").putExtra("protocol",PROTOCOL)

@@ -14,7 +14,6 @@ public final class SunWindowModule extends XposedModule {
         note("SYSTEM_SERVER_START eligible=" + eligible + " attempted=" + attempted);
         if (!eligible || attempted) return;
         attempted = true;
-        ProductFeatures.installServer(this,p.getClassLoader(),this::note);
         XposedInterface.HookHandle startup=null;
         try{
             ClassLoader loader=p.getClassLoader();
