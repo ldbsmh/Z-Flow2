@@ -3,12 +3,14 @@
 > 功能接入状态（哪些已实现、哪些没有/不能实现）另见
 > [nc-integration-status.md](nc-integration-status.md)；本文是技术实现细节。
 
-本次改动把小窗的“实现方式”从 Z-Flow 原有的虚拟屏方案换成 NativeComplements 的方案：
+本次改动把小窗的“实现方式”从 Z-Flow 原有的虚拟屏方案换成 NativeComplements 的方案。
+**虚拟屏那一套已经整体删除**（`FreeformWindow` / `FreeformManager` / `IFreeformManager`
+AIDL / 只服务于它的 system_server Hook），下表左列只作历史对照，代码里没有回退路径：
 
-| | 原实现（legacy） | 新实现（nc） |
+| | 原实现（已删除） | 现实现（nc） |
 |---|---|---|
 | 承载方式 | 每个小窗一个 `VirtualDisplay` + 独立任务栈 | 同屏真实 freeform 任务 |
-| 窗口外观 | SystemUI 里自绘窗口框（`FreeformWindow`） | 系统窗口 + SystemUI 控件层（贴边图标、迷你窗、底栏关闭区） |
+| 窗口外观 | SystemUI 里自绘窗口框 | 系统窗口 + SystemUI 控件层（贴边图标、迷你窗、底栏关闭区） |
 | 跨进程协议 | AIDL `IFreeformManager` | 广播 + Binder 帧通道（`Wire`，协议 16） |
 | Hook 框架 | 经典 Xposed API 82 | libxposed API 101 |
 | 入口 | 侧边栏 / 磁贴 / 通知 / 桌面长按 | 保留 Z-Flow 入口，斜滑改由 Z-Flow 轮盘承担（`docs/radial-gesture.md`） |
@@ -23,22 +25,21 @@ Z-Flow/
 │   ├── consumer-rules.pro        # R8：引擎全靠反射，必须整体 keep
 │   └── src/main/
 │       ├── java/.../features/floatingwindow/legacy/   # WindowEngine / SystemUiHost / WindowControls / Wire / Config ...
-│       ├── java/.../core/                             # 后端资格与归属判定
 │       ├── java/.../Engine.java                       # 对宿主暴露的唯一门面
 │       ├── resources/META-INF/xposed/{java_init.list,module.prop,scope.list}
-│       └── AndroidManifest.xml                        # CONTROL 权限、资格接收器、ConfigProvider
+│       └── AndroidManifest.xml                        # CONTROL 权限、ConfigProvider
 └── app/
-    ├── src/main/java/io/relimus/zflow/service/NcWindowBackend.kt   # 后端选择与路由
-    ├── FreeformRequestHandler.create()                            # 统一出口，改为按后端分流
-    └── xposed/services/FreeformService.handleStartIntent()        # 同上
+    ├── src/main/java/io/relimus/zflow/service/NcWindowBackend.kt   # 宿主侧的路由
+    ├── FreeformRequestHandler.create()                            # 统一出口，唯一路径
+    └── broadcast/FreeformRequestReceiver                          # 广播入口（open API / hook 侧）
 ```
 
 调用链：
 
 ```
 侧边栏 / 磁贴 / 通知 / 桌面长按
-   → FreeformRequestHandler.create() 或 FreeformService
-   → NcWindowBackend（内核固定 NC；引擎不可用时内部回退经典）
+   → FreeformRequestHandler.create()
+   → NcWindowBackend
    → Engine.openApp / openNotification
    → 广播 io.relimus.zflow.COMMAND（发给 android 包 = system_server）
    → ncengine WindowEngine（真实 freeform 任务）
@@ -146,15 +147,15 @@ ClassLoader，桌面里的类一个都找不到。
 `scope.list` 里补了 `io.relimus.zflow`：否则 Z-Flow 自己进程里不挂 `HookMyself`，
 首页会一直显示「LSPosed 没有激活」。
 
-## 开关
+## 内核：只有一个，没有开关
 
-设置 → 启动与触发 → 桌面与手势 → **NC 引擎总开关**（`nc_engine_enabled`）。
+设置页**没有**「小窗内核」选择器，也**没有**引擎总开关：`nc_engine_enabled` /
+`window_engine` 两个键连同引擎侧 `Config.enabled()`、`Engine.enabled/setEnabled`、
+`corner.enabled` 迁移逻辑一起去掉。引擎被 LSPosed 加载即接管后端，不做归属比对
+（`ModuleIdentity` / `WindowBackendOwnership` / `WindowBackendConflict` 已删）。
 
-内核选择（`window_engine`：NC / 经典虚拟屏）已随设置页精简删除，**固定走 NC**。
-总开关关掉时，开窗请求不再交给引擎，Z-Flow 内部回退经典虚拟屏（仅有默认值，无外观可调）。
-
-首次以新内核开窗时，会把引擎侧总开关（`corner.enabled`）同步为开启，
-否则 SystemUI 控件层不会绘制。
+开窗失败的唯一表现是请求返回 false 并在 `ZFlowMini` / `FreeformRequest` 日志里留一行，
+不会悄悄换一条路径。
 
 ## 已并/未并的上游能力
 
@@ -232,7 +233,7 @@ miniMagnet.follow((窗口底边 - 关闭区顶部) / 关闭区高度);  // 0..1
 
 SystemUI 侧从「一个 `miniControls`」改成「按 taskId 复用的 `WindowControls` 池」：
 报文 `pinnedFrames`（`ParcelableArrayList<Intent>`）逐个更新，不在列表里的只 `hide()`；
-贴边把手、IME 偏移、系统遮挡、`protectedRects` 都对全部实例聚合。旧引擎只发
+贴边把手、IME 偏移、触摸区域（`fillTouchRegion`）都对全部实例聚合。旧引擎只发
 `pinnedFrame`，宿主仍兼容单个的情形。
 
 ## 设置项对接（Z-Flow 设置 → NC 引擎）
@@ -257,15 +258,14 @@ SystemUI 侧从「一个 `miniControls`」改成「按 taskId 复用的 `WindowC
     被窗口裁掉的正是出屏那截；拖动把手期间强制 reveal=1，完整跟手
 ```
 
-窗口宽度跟着比例缩，所以受保护区（`protectedRects`）也只覆盖真正露出来的那条，
+窗口宽度跟着比例缩，所以触摸区域（`fillTouchRegion`）也只覆盖真正露出来的那条，
 不会在图标旁边留一块点不到的空白。
 
 其余外观项（`freeform_size` / `freeform_size_land` / `freeform_float_view_size` /
 `freeform_dimming_amount` / `freeform_scale` / `manual_adjust_freeform_rotation` /
 `ime_double_tap_retrigger`）与整块「小窗外观与尺寸」页面、`window_engine`（内核选择）、
 `max_freeform_windows`（小窗数量上限）已删除——引擎不消费它们，留着就是「调了没反应」。
-这些键在代码里也**不再被读取**：经典内核回退路径由 `FreeformManager` 直接给默认值，
-`IFreeformManager` 的开窗签名因此只剩「随请求变化」的几项。
+这些键在代码里也**不再被读取**：开窗签名只剩「随请求变化」的几项，几何由引擎默认值决定。
 
 | 设置页键 | 原语义 |
 |---|---|
@@ -278,9 +278,8 @@ SystemUI 侧从「一个 `miniControls`」改成「按 taskId 复用的 `WindowC
 | `ime_double_tap_retrigger` | 双击底栏中部重唤输入法 |
 
 连同整块「小窗外观与尺寸」页面、`window_engine`（内核选择）、
-`max_freeform_windows`（小窗数量上限）一起去掉。键与对应的 AIDL 参数都已移除，
-经典内核回退路径用固定默认值（`0.75 / 0.90 / 0.25 / 0.20 / false / true`），
-只会少掉可调项，不会崩。
+`max_freeform_windows`（小窗数量上限）一起去掉。键与对应的开窗参数都已移除，
+几何用固定默认值（`0.75 / 0.90 / 0.25 / 0.20 / false / true`）。
 
 `popup_bubble_block` 属于通知气泡拦截，不在小窗链路上，没有搬。
 
@@ -298,11 +297,11 @@ NC 引擎自己有一套 `corner` 偏好（`Config.java`），SystemUI 宿主启
   → SystemUiHost.settingsReceiver（校验发送方 UID 是本应用）→ loadSettings() 重拉快照
 ```
 
-镜像的 7 项（`WindowEngineSettings.MIRROR`，默认值与 `Config` 严格一致）：
+镜像的 6 个开关（`WindowEngineSettings.MIRROR`）+ 1 个数值项（`MIRROR_INT` 的 `dockStyle`，
+见上节），默认值与 `Config` 严格一致：
 
 | 设置页键 | `corner` 键 | 作用 | 消费方 |
 |---|---|---|---|
-| `nc_engine_enabled`（默认开） | `enabled` | 引擎总开关：关掉后 Z-Flow 开窗回退经典内核，SystemUI 控制条停止 | 两边 |
 | `nc_auto_minimize`（默认开） | `autoMinimizeOnOpen` | 开新窗时上一个默认窗收成迷你，而不是直接关闭 | `Wire` 随 OPEN 下发 |
 | `nc_end_on_close`（默认关） | `endOnClose` | 关掉应用的最后一个窗口时 force-stop 该应用 | `Wire` 随 OPEN 下发 |
 | `nc_keep_edge_awake`（默认关） | `keepEdgeAwake` | 贴边迷你窗保活应用进程 | `Wire` 随 OPEN 下发 |
@@ -323,18 +322,16 @@ NC 引擎自己有一套 `corner` 偏好（`Config.java`），SystemUI 宿主启
 （`HookNotificationAction`）发起，三个挂点全部先查
 `RemoteSettings.isNotificationEnabled`（Room 的通知白名单），再走统一链路
 `FreeformRequestHandler.create` → `NcWindowBackend.openNotification`。
-白名单对 NC 与经典内核一视同仁；引擎侧的通知接管（`NotificationWindow`）
-从未安装，也已在精简时删除。
+引擎侧的通知接管（`NotificationWindow`）从未安装，已在精简时删除。
 
 ## 已知缺口（待后续阶段）
 
 1. 外观不可调：NC 引擎用自身默认值（长按可调整大小），设置页没有对应入口。
 2. 引擎安装失败（例如 `SunWindowModule` 的 `startOtherServices` deopt 预检不过）时，
-   开窗会静默回退到经典虚拟屏（关掉「NC 引擎总开关」也是这条路径）；内核选择项已删除，
-   没有「切回经典」的手动开关。
-3. 引擎总开关已单独暴露（`nc_engine_enabled`）；角落扇区已整体删除
-   （斜滑菜单由 Z-Flow 自己的轮盘承担，见 `docs/radial-gesture.md`）。
+   开窗直接失败并记日志——没有第二套内核可退。
+3. 角落扇区已整体删除（斜滑菜单由 Z-Flow 自己的轮盘承担，见 `docs/radial-gesture.md`）。
 4. 真机未验证：`Wire` 协议、`WindowEngine` 的 WMS Hook、SystemUI 宿主在当前 ROM 上的可用性。
+5. 与上游 NativeComplements 模块**不能再共存**：归属仲裁已删，两者同时启用会各自建引擎。
 
 ## 构建
 
@@ -345,7 +342,7 @@ NC 引擎自己有一套 `corner` 偏好（`Config.java`），SystemUI 宿主启
 
 构建期已验证：`java_init.list` / `module.prop` / `scope.list` 进入 APK，
 `dev.local.sunwindowdemo.WindowEngine` 在 dex 中，合并清单里包含
-`io.relimus.zflow.CONTROL`、`io.relimus.zflow.settings`、资格接收器。
+`io.relimus.zflow.CONTROL`、`io.relimus.zflow.settings`。
 
 release 侧注意：R8 已通过（`minifyReleaseWithR8` 成功，混淆后类名仍保留）；
 `assembleRelease` 目前会被 `lintVitalRelease` 挡住，原因是仓库既有的

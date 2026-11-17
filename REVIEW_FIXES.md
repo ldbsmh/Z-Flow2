@@ -2,6 +2,11 @@
 
 本文件记录三轮审查意见对应的实际改动，**以源码为准**，文档与实现不一致处以代码为准。
 
+> **历史文档（2026-11）**：经典虚拟屏内核与 `IFreeformManager` AIDL 链路已整体删除，
+> 小窗内核固定为 NC 引擎。下文中涉及 `FreeformService` / `FreeformManagerProxy` /
+> AIDL 参数 / 虚拟屏兜底的条目只作为当时的修复记录保留，代码里已不存在，
+> 现状见 [docs/nc-integration-status.md](docs/nc-integration-status.md)。
+
 > 构建验证的限制：开发环境为 aarch64 Linux，Android SDK 自带的 `aidl` 是 x86_64 ELF 无法执行。
 > 本地只做了 `:app:compileDebugKotlin`（含 KSP + Room）的类型检查，AIDL 用临时生成的占位源码替代，
 > AIDL 文件与构建脚本本身未改动。**这不等于真实 AIDL 的完整构建，更不能证明设备运行时行为正确**，

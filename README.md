@@ -25,7 +25,7 @@ Z-Flow 是一个基于 Xposed 的自由窗口（Freeform）增强模块，能够
 
 ## 使用前提
 
-Z-Flow 依赖 Xposed 框架运行，需确保设备已安装并激活 Xposed/LSPosed。部分功能可能还需要 Shizuku 或无障碍权限的支持。
+Z-Flow 依赖 Xposed 框架运行，需确保设备已安装并激活 Xposed/LSPosed。悬浮侧边栏保活等辅助能力可能还需要无障碍权限。
 
 ## 依赖库
 
@@ -34,7 +34,6 @@ Z-Flow 依赖 Xposed 框架运行，需确保设备已安装并激活 Xposed/LSP
 | [AppIconLoader](https://github.com/zhanghai/AppIconLoader) | 应用图标加载 |
 | [Glide](https://github.com/bumptech/glide) | 图片加载 |
 | [RikkaX](https://github.com/RikkaApps/RikkaX) | 系统 API 兼容 |
-| [Shizuku](https://github.com/RikkaApps/Shizuku) | 特权 API 调用 |
 | [TinyPinyin](https://github.com/promeG/TinyPinyin) | 拼音搜索支持 |
 | [Xposed](https://github.com/rovo89/Xposed) | 模块框架 |
 | [MoreBubbleButton](https://github.com/TYOPXN360/MoreBubbleButton) | 消息气泡按钮（通知接管方案参考） |

@@ -5,16 +5,16 @@
 
 ## 0. 背景速览
 
-Z-Flow 的小窗内核**固定为 NC 引擎**（设置 → 启动与触发 → 桌面与手势 → NC 引擎总开关）。
-2026-11 精简时删掉了「小窗内核」选择器：经典虚拟屏内核只在引擎不可用/总开关关闭时
-作为内部兜底，不再有外观可调项，因此对应的设置页条目也一并删除了。
+Z-Flow 只有一个小窗内核：**NC 引擎**。没有内核选择器、没有总开关、没有经典虚拟屏兜底
+（2026-11 精简时把虚拟屏内核、AIDL 链路和只服务于它的 system_server Hook 全部删除）。
+开窗失败就是失败，不会悄悄换一条路径。
 
-| | 经典虚拟屏（仅内部兜底） | NC 引擎（NativeComplements，默认） |
-|---|---|---|
-| 窗口本质 | 虚拟屏 + 应用内自绘窗口 | **真实 freeform 任务**（WMS 层接管） |
-| 运行位置 | Z-Flow 自己的进程 | system_server（窗口引擎）+ SystemUI（控件层） |
-| 最近任务 | 不出现 | 真实任务，可配置隐藏 |
-| 加载方式 | — | LSPosed 模块，改代码后需重载 SystemUI |
+| | NC 引擎（NativeComplements） |
+|---|---|
+| 窗口本质 | **真实 freeform 任务**（WMS 层接管） |
+| 运行位置 | system_server（窗口引擎）+ SystemUI（控件层） |
+| 最近任务 | 真实任务，可配置隐藏 |
+| 加载方式 | LSPosed 模块，改代码后需重载 SystemUI |
 
 引擎与 Z-Flow 的通信通道：
 
@@ -35,10 +35,10 @@ Z-Flow 的小窗内核**固定为 NC 引擎**（设置 → 启动与触发 → �
 |---|---|
 | 桌面长按图标开小窗 | `popup_freeform_enable`，HookLauncher → `SOURCE_POPUP` |
 | **多任务卡片上滑开小窗** | HookSwipeGesture → `SOURCE_RECENT_SWIPE`，携带被上滑卡片的 `taskId`；引擎从最近任务认领，按包名校验防任务号复用 |
-| **通知栏小窗按钮** | `notify_freeform`，HookNotificationAction → `SOURCE_NOTIFICATION`；`openNotification` 保留通知的着陆 Activity；**入口受 Z-Flow 通知白名单（Room `notification_apps`）约束，与经典内核共用同一条链路** |
+| **通知栏小窗按钮** | `notify_freeform`，HookNotificationAction → `SOURCE_NOTIFICATION`；`openNotification` 保留通知的着陆 Activity；**入口受 Z-Flow 通知白名单（Room `notification_apps`）约束** |
 | **底角上滑轮盘** | `radial_gesture_enable`，Launcher 手势 hook → `SOURCE_RADIAL`；从可配置的底角触发区斜向上滑，三环最多 13 个应用，松手即以小窗打开 |
 | 侧边栏快捷应用 | Z-Flow 自己的悬浮侧边栏选应用后走统一链路 |
-| 开放 API | `open_api_zh-Hans.md` 的两个入口，`FreeformService` 里有 NC 分支 |
+| 开放 API | `open_api_zh-Hans.md` 的两个入口（`start_freeform` 广播 / 快捷磁贴），都落到 `FreeformRequestReceiver` |
 
 ### 1.2 窗口形态与交互
 
@@ -50,7 +50,7 @@ Z-Flow 的小窗内核**固定为 NC 引擎**（设置 → 启动与触发 → �
 | 单击还原 / 双击全屏 / 长按调整大小或静音 | 迷你窗三手势，引擎自带 |
 | 贴边把手 = 应用图标 | 60dp 白底圆角 + 居中应用图标，按包名缓存 |
 | 关闭 = 滑到底渐隐 | 底部 15% 为关闭区，窗口渐隐缩到 35%，松手按进度过半判定 |
-| 引擎安装与恢复 | 首次开窗把总开关投影成 PM 组件状态；崩溃后 `recover()` 重挂会话 |
+| 引擎安装与恢复 | 模块加载即接管后端；崩溃后 `recover()` 重挂会话 |
 
 ### 1.3 基础设施
 
@@ -86,7 +86,7 @@ NC 的角落扇形菜单已删，斜滑菜单由 Z-Flow 自己的轮盘承担：
 |---|---|
 | **多迷你窗并存** | 连开多个小窗同时挂着（`pinned` 列表），向下堆叠错开（`MINI_CASCADE`）；数量上限为引擎默认 2 |
 | 贴边图标 / 滑底渐隐 | 贴边是应用图标；拖到底渐隐、无叉号 |
-| 原生设置镜像 6 项 | `nc_*` 开关改完广播给 SystemUI 立即重拉；关「引擎总开关」后开窗回退经典内核 |
+| 原生设置镜像 6 项 | `nc_*` 开关改完广播给 SystemUI 立即重拉 |
 | **扇区删除后的引擎** | 引擎侧不再有角落斜滑；斜滑由 Z-Flow 轮盘接管（见 1.4），小窗控制条、迷你窗、贴边、通知开窗正常 |
 
 ## 3. 已接入的设置项
@@ -95,7 +95,6 @@ NC 的角落扇形菜单已删，斜滑菜单由 Z-Flow 自己的轮盘承担：
 
 | 设置页键 | 引擎键 | 默认 | 作用 |
 |---|---|---|---|
-| `nc_engine_enabled` | `enabled` | 开 | 引擎总开关：关掉后 Z-Flow 回退经典内核，控制条停止 |
 | `nc_auto_minimize` | `autoMinimizeOnOpen` | 开 | 开新窗时上一个默认窗收成迷你（否则直接关闭） |
 | `nc_end_on_close` | `endOnClose` | 关 | 关掉应用的最后一个窗口时 force-stop 该应用 |
 | `nc_keep_edge_awake` | `keepEdgeAwake` | 关 | 贴边迷你窗保活应用进程 |
@@ -103,7 +102,7 @@ NC 的角落扇形菜单已删，斜滑菜单由 Z-Flow 自己的轮盘承担：
 | `nc_hide_window_recents` | `hideRecents` | 关 | 小窗任务不进最近任务（与「隐藏 Z-Flow 自己」是两回事） |
 | `nc_landscape_share_window` | `landscapeShareWindow` | 开 | 横屏下分享目标以窗口打开 |
 
-小窗黑名单（Room）仍由 Z-Flow 侧 `isBlacklistedOrBlock()` 拦在开窗前，对两个内核一视同仁。
+小窗黑名单（Room）由 Z-Flow 侧 `isBlacklistedOrBlock()` 拦在开窗前。
 
 ### 3.2 外观类设置：只剩贴边把手露出比例
 
@@ -118,7 +117,7 @@ NC 的角落扇形菜单已删，斜滑菜单由 Z-Flow 自己的轮盘承担：
 | `max_freeform_windows` / `window_engine` | 已删除（引擎固定 2 窗、固定走 NC） |
 
 整块「小窗外观与尺寸」页面已撤掉，`freeform_dock_style` 挪到「运行规则与交互 → 贴边」。
-删掉的键在代码里以默认值兜底，经典内核回退路径不会崩。
+删掉的键在代码里以默认值兜底，不再有第二套内核去读它们。
 
 横屏应用名单（`landscape_apps`）保留：它决定“哪些应用以横屏小窗打开”，仍有意义。
 
@@ -166,18 +165,26 @@ viewport 一致性）、`WindowContinuation`（贴边保活）。
 `maxWindows` 注释写着「由打开请求携带」，但没有任何请求带这个值
 （`max_freeform_windows` 设置项已删），实际恒为 2；改成显式常量 `MINI_WINDOW_LIMIT`。
 
-仍未动：`ModuleIdentity` / `WindowBackendOwnership` / `WindowBackendConflict`
-的双产品仲裁（约 130 行，只在用户同时装了上游 NativeComplements 时生效），
-以及经典虚拟屏兜底（`FreeformWindow` / `FreeformManager` / `ImeRetrigger`，
-NC 不可用时才跑）——两者都是「要不要保留共存/兜底」的产品决定，不是死代码。
+### 4.2 取消「双内核 / 双产品」全部残留（2026-11）
+
+这两项本来被列为「产品决定，先保留」，最终按「把它当成一个新项目、不留回退」处理：
+
+| 删除项 | 说明 |
+|---|---|
+| **NC 引擎总开关**（`nc_engine_enabled` / `Config.enabled()` / `Engine.enabled/setEnabled`） | 关掉它唯一的用途是回退经典内核；内核没了，开关只剩「关掉后什么都不发生」。设置页条目、`corner.enabled` 迁移逻辑、`SystemUiHost` 三处 `enabled()` 判断、`Wire` 两处 `&&` 一并删除 |
+| **`core/WindowBackendEligibility`** + Manifest 的 BOOT_COMPLETED / MY_PACKAGE_REPLACED receiver | 只是把总开关投影成 PM 组件状态给 system_server 读，开关删了它就没有输入 |
+| **双产品仲裁**（`ModuleIdentity` / `WindowBackendOwnership` / `WindowBackendConflict`） | 只在同时装了上游 NativeComplements 时才生效；Z-Flow 是唯一产品，`SunWindowModule` 直接建引擎，不再比对归属 |
+| **经典虚拟屏内核**（`FreeformWindow` / `FreeformManager` / `ImeRetrigger` / `FreeformConfig` / `IFreeformManager.aidl` / `FreeformManagerProxy` / `ServiceProvider` / `UserService` / `FreeformService`） | 约 5000 行。`FreeformRequestHandler` 现在只有 `NcWindowBackend` 一条出口，失败即返回 false |
+| **虚拟屏专用 system_server Hook**（`HookFramework` / `HookImeInsetsBridge` / `HookImeAdjustResize` / `HookReload` / `HookPredictiveBack` / `HookSystemUI` / `HookSystem`） | 全部以 `isManagedDisplay()`（虚拟屏）为前提，虚拟屏不存在时是空转；`MainHook` 不再向 `android` 进程分发任何 Hook |
+| **应用侧“服务是否连上”状态**（`ZFlow.isRunning` / `recheckConnection`、首页与权限页的 Shizuku 状态卡、`ServiceProvider`） | system_server binder 不再存在，这张卡永远显示未连接 |
 
 ## 5. 未实现——可以做到，但本阶段没做 ⏸
 
 | 功能 | 原因 / 备注 |
 |---|---|
 | 尺寸类设置的就地重排 | 已打开的窗口不跟随设置变化；如需支持要引擎加「按新几何重算当前会话」的遍历 |
-| 引擎安装失败的自动回退 | `SunWindowModule` 预检不过时开窗会静默走经典兜底；「小窗内核」选择器已删，没有手动切换入口 |
-| 数量上限的设置接入 | 引擎固定默认 2 个（`maxWindows` 字段保留，extra 通道已删）；`max_freeform_windows` 设置项已删除，经典内核回退时取默认 2 |
+| 引擎安装失败的自动回退 | `SunWindowModule` 预检不过时只是不建引擎，开窗请求会失败并记日志；没有第二套内核可退 |
+| 数量上限的设置接入 | 引擎固定 2 个（`MINI_WINDOW_LIMIT`），`max_freeform_windows` 设置项已删除 |
 | `manual_adjust_freeform_rotation` | 引擎有旋转门控（`RotationGate`）但没有「手动调整」入口，设置项已删除 |
 
 ## 6. 不能实现——引擎架构层面无对应能力 ❌
@@ -187,7 +194,7 @@ NC 不可用时才跑）——两者都是「要不要保留共存/兜底」的�
 | `freeform_scale`（DPI 缩放） | 引擎接管的是真实 task，DPI 由系统配置决定；旧实现自己也不生效 |
 | `ime_double_tap_retrigger` | 旧实现底栏的 IME 方案，NC 引擎没有底栏，IME 完全交给系统；设置项已删除 |
 
-**与内核无关、不适用搬运的**（两内核行为相同）：`hide_from_recent`（隐藏的是
+**与内核无关、不适用搬运的**：`hide_from_recent`（隐藏的是
 Z-Flow 自己）、`popup_bubble_block`（通知气泡拦截）、`trusted_callers`、保活
 `service_type`、悬浮侧边栏本身（只有「选完应用开窗」这一步落到内核）。
 
