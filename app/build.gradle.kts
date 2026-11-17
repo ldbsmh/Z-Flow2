@@ -85,7 +85,6 @@ extensions.configure<ApplicationExtension> {
     }
 
     buildFeatures {
-        aidl = true
         buildConfig = true
         viewBinding = true
     }
@@ -99,8 +98,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.navigation.fragment.ktx)
-    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -133,12 +130,6 @@ dependencies {
     implementation(libs.hiddenapibypass)
 
     implementation(libs.rikkax.refine.runtime)
-
-    // Rikka Hidden API compat for system_server hooks
-    compileOnly(libs.rikka.hidden.stub)
-    implementation(libs.rikka.hidden.compat)
-
-    compileOnly(project(":hidden-api"))
 
     // NativeComplements 小窗内核（libxposed API 101 入口随库一起打包）
     implementation(project(":ncengine"))

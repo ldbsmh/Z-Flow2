@@ -3,38 +3,19 @@
     <string name="warn">提示</string>
     <string name="done">确定</string>
 
-    <string name="lorem_ipsum" >"a"</string>
     <string name="xposed_description">一个可以让应用程序以小窗模式运行的Xposed模块</string>
 
     <!--SplashActivity-->
-    <string name="mi_freeform_not_support">Z-Flow仅支持Android 13及以上系统</string>
     <string name="privacy_title">隐私政策</string>
     <string name="privacy_message">现维护者名称：ReLimus\n\n原开发者名称：KindBrave\n\n版本生效日期：2022/8/31\n\n隐私政策版本：1\n\n欢迎你使用Z-Flow，Z-Flow非常重视用户的隐私，Z-Flow本体不会收集、存储、上传任何用户信息。\n\n请仔细阅读并理解以下内容，如果你不同意Z-Flow的隐私政策或者对Z-Flow的隐私政策有疑问，请不要使用Z-Flow。\n\n1.Z-Flow本体\n为了保证Z-Flow的正常运行，Z-Flow需要申请以下可能涉及隐私的权限：\n\t1)无障碍权限\n\t\t无障碍权限用于侧边栏的展示等功能，主要利用其高保活能力特性，Z-Flow没有使用无障碍权限对系统、用户进行任何监控。\n\t2)通知使用权限\n\t\t通知使用权是可选权限，即你可以根据自己的情况选择授权或者不授权。通知使用权用户接管通知以对通知添加“小窗打开”功能，Z-Flow虽然获取到了通知内容，但是没有对其进行任何分析、存储、上传。</string>
     <string name="agree">同意</string>
     <string name="reject">拒绝</string>
 
     <!--FreeformView-->
-    <string name="service_not_running">Xposed服务未连接，请确保已在Xposed管理器中激活模块并勾选系统框架</string>
-    <string name="try_to_init_xposed_service">正在尝试连接Xposed服务…</string>
-    <string name="overlay_no_permission">没有悬浮窗权限</string>
-    <string name="app_is_running">该应用已经处于小窗模式</string>
-    <string name="create_display_fail">创建屏幕失败，这表示Z-Flow可能不能在该ROM上运行，请联系开发者</string>
 
     <!--fragment_home.xml-->
     <string name="settings">设置</string>
-    <string name="feedback">问题反馈</string>
-    <string name="donate">捐赠</string>
-    <string name="rate">打个分吧</string>
-    <string name="coolapk_my_name">酷安关注我 @KindBrave</string>
-    <string name="add_qq_group">加入QQ交流1群</string>
-    <string name="add_qq_group2">加入QQ交流2群</string>
-    <string name="add_qq_channel">加入QQ频道/反馈</string>
-    <string name="add_telegram">Telegram交流群</string>
-    <string name="open_source">Github</string>
     <string name="accessibility_no_start_home">点击申请无障碍权限</string>
-    <string name="donate_message">Z-Flow无需强制付费即可体验，但维护Z-Flow耗费了开发者大量精力。捐赠可以让开发者更有动力地维护下去</string>
-    <string name="exchange">交流与反馈</string>
-    <string name="guide">功能引导</string>
     <string name="open_api">开放API</string>
     <string name="open_api_summary">面向其它应用的开启小窗能力接口（如手势工具）</string>
     <string name="about_version_title">版本</string>
@@ -52,15 +33,10 @@
 
     <!--HomeFragment-->
     <string name="try_to_init_xposed">拥有Xposed后并不能帮助Z-Flow开启小窗，但Z-Flow拥有Xposed后可以阻止应用从小窗中跳出为全屏。使用Xposed，需要您去Xposed管理应用（如Lsposed）中为Z-Flow勾选”系统框架“并重启设备</string>
-    <string name="sui_service_description">你已经可以体验Z-Flow服务</string>
-    <string name="start_market_fail">打开应用商店失败</string>
-    <string name="start_coolapk_fail">打开酷安失败</string>
-    <string name="start_qq_fail">打开QQ失败</string>
     <string name="xposed_start_short">Xposed存在</string>
     <string name="home_accessibility_warn_message">当前保活模式为无障碍服务，所以需要开启无障碍服务才可以正常运行。如果在你的设备上无障碍服务有问题或者你不想使用无障碍模式，可以去设置中切换保活模式</string>
     <string name="go_to_start_accessibility">开启无障碍</string>
     <string name="go_to_change_service_type">去切换保活服务类型</string>
-    <string name="donate_wechat_title">保存截图在微信扫码就可以啦</string>
 
     <!--accessibility_config.xml-->
     <string name="accessibility_desc">Z-Flow保活服务。该服务可以保证Z-Flow的后台存活。Z-Flow不会通过该服务收集任何信息。</string>
@@ -95,7 +71,6 @@
     <string name="next_step">下一步</string>
 
     <!--SettingActivity-->
-    <string name="label_setting">设置</string>
 
     <!--settings-->
     <string name="category_trigger">启动与触发</string>
@@ -118,14 +93,7 @@
     <string name="service_type_summary">默认为无障碍。如果无障碍在你的设备上有问题，可以选择前台通知。切换到前台通知时，请确保无障碍处于关闭状态。如果无障碍在你的设备上运行正常，请不要选择前台通知</string>
     <string name="preference_reset_overlay_setting">重置侧边栏位置</string>
     <string name="preference_reset_overlay_setting_summary">把记住的侧边栏纵向位置恢复默认。侧边栏跑到屏幕外或卡在异常位置时可用</string>
-    <string name="compatible_title">兼容模式启动小窗（实验性）</string>
-    <string name="compatible_summary">使用兼容模式启动小窗，该模式可以解决小窗内软件通知、全屏后等界面尺寸异常的问题。兼容模式小窗界面缩放比例下一版本支持。</string>
 
-    <string name="category_freeform">小窗外观与行为</string>
-    <string name="remember_position_title">记住悬浮小窗位置</string>
-    <string name="remember_position_summary">记住上次悬浮时的位置</string>
-
-    <string name="category_floating">侧边栏</string>
     <string name="switch_floating">全局侧边栏</string>
     <string name="switch_floating_summary">通过侧边栏打开小窗应用</string>
     <string name="menu_floating_position">侧边栏位置</string>
@@ -178,64 +146,33 @@
     <string name="label_sort_apps">快捷应用排序</string>
 
     <!--NotificationService.kt-->
-    <string name="freeform_channel_id">小窗应用通知</string>
-    <string name="open_by_freeform">小窗打开</string>
 
     <!--SettingFragment-->
     <string name="require_accessibility">请授权无障碍权限</string>
     <string name="reset_success">重置成功，部分设置重启Z-Flow后生效</string>
-    <string name="require_start_accessibility">请开启无障碍服务后再试</string>
-    <string name="require_stop_accessibility">请关闭无障碍服务后再试</string>
 
     <!--QuickStartTileService-->
     <string name="choose_freeform_app">选择小窗应用</string>
 
     <!--fragment_guide_first-->
-    <string name="hello">你好</string>
-    <string name="welcome">欢迎使用Z-Flow</string>
-    <string name="guide_a">通过下面的教程，你将会更快地上手Z-Flow</string>
-    <string name="button_step_a">一、使用Z-Flow前的准备</string>
-    <string name="guide_a_text">\t\t<font color="red"><b>特别提醒：Z-Flow无法在Vulkan模式下运行，如果你开启过类似选项（如万花筒ROM-设置-系统-实验室中“使用Vulkan进行HWUI渲染”），请关闭该选项后，强行停止Z-Flow再运行，否则将闪退！请注意，切换Vulkan选项可能会导致设备无法启动，请不用在主要设备上尝试！</b></font>\n\t\t在使用Z-Flow前，必须向你介绍使用Z-Flow所必须的工具。<b>Z-Flow需要Xposed</b>，如果你不了解上述工具，请自行查阅相关资料，<b>在设备上安装完毕后再使用Z-Flow</b>。\n\t\tZ-Flow目前支持多种启动方式，包括：1.侧边栏，2.快捷磁贴 3.预留活动等，在未来，Z-Flow将会支持更多启动方式。</string>
-    <string name="button_step_b">二、了解Z-Flow的控制方式</string>
 
     <!--activity_guide_study-->
 
     <!--GuideStudyActivity-->
-    <string name="guide_move">小窗如何移动？如何挂起？ 拖动指示的按钮到屏幕四角试试 从挂起状态恢复只需点击小窗界面即可</string>
-    <string name="guide_back">很好！\n那么如何在小窗中返回上一个界面？点击指示的按钮即可</string>
-    <string name="guide_close">太棒了！\n想要关闭小窗？点击指示的按钮即可</string>
-    <string name="guide_to_full">真不错！\n那么如何全屏化小窗？长按指示按钮试试</string>
-    <string name="guide_to_back_stage">聪明！\n不想终止小窗程序，又不想让其在屏幕上显示？试试后台挂起长按右键即可实现\n</string>
-    <string name="guide_scale">厉害了！\n后台挂起的程序将会在小窗应用选择界面的最上方展示，点击即可恢复。\n最后一项，如果对小窗进行缩放，试试拖动小窗下角高亮部分</string>
-    <string name="guide_success">恭喜你，已经了解了Z-Flow的基本操作\n现在，你可以通过点击关闭按钮关闭该演示小窗</string>
 
     <!--SecondFragment-->
-    <string name="no_step_done">请完成所有引导</string>
-    <string name="step_b_warn">请确保你已经阅读并完全理解“一、使用Z-Flow前的准备”中的内容后，再开启该教程</string>
-    <string name="to_read_step_a">去阅读</string>
-    <string name="start_step_b">开始教程</string>
 
     <!--fragment_second-->
-    <string name="have_done">完成</string>
 
     <!--DonationActivity-->
-    <string name="donation_label">捐赠</string>
-    <string name="open_alipay_fail">开启支付宝失败</string>
 
     <!--activity_donation.xml-->
-    <string name="senior_info">Z-Flow始终坚持免费使用的承诺，但是为了后续开发更多好玩实用的功能，还需要您的支持。如果您有兴趣帮助Z-Flow，可以选择酷安给我五星好评、捐赠开发者。支付宝捐赠可以点击下方按钮进行跳转，微信捐赠暂不支持跳转，您可以截图保存后通过扫码的方式捐赠，感激不尽。无论您捐赠与否，Z-Flow提供的功能都将保持一致，感谢您的支持。</string>
-    <string name="alipay">支付宝捐赠</string>
-    <string name="pay_list">捐赠名单</string>
-    <string name="so_sad">捐什么捐，我要白嫖！</string>
-    <string name="wechat">下方微信赞赏码截图就可以啦</string>
 
     <!--ChooseAppFloatingAdapter-->
     <string name="fenshen">分身</string>
-    <string name="running">(正在运行)</string>
 
     <!--FloatingActivity-->
     <string name="floating_label">打开侧边栏</string>
-    <string name="require_foreground">请确保前台服务在运行，可以尝试切换保活服务类型来解决</string>
 
     <!--ForegroundService-->
     <string name="foreground_notification_name">前台服务通知</string>
@@ -246,15 +183,10 @@
     <string name="home">首页</string>
 
     <!--view_edit-->
-    <string name="input_freeform_dpi">范围50~500</string>
 
     <!--RecentActivity-->
-    <string name="recent_label">正在运行的小窗</string>
-
-    <string name="test">1111</string>
 
     <!--task_view_menu_option-->
-    <string name="recent_open_by_freeform">使用Z-Flow打开</string>
     <string name="nc_auto_minimize_title">开新窗时上一个收成迷你窗</string>
     <string name="nc_auto_minimize_summary">关闭后，打开新窗口时上一个窗口直接关闭，不再缩成迷你窗</string>
     <string name="nc_end_on_close_title">关闭小窗时结束应用</string>
@@ -280,7 +212,6 @@
     <string name="label_landscape_apps">横屏小窗应用选择</string>
     <string name="preference_landscape_apps">横屏小窗应用</string>
     <string name="preference_landscape_apps_summary">勾选的应用默认以横屏小窗方式打开</string>
-    <string name="category_landscape">横屏设置</string>
     <string name="label_trusted_callers">受信任外部调用者</string>
     <string name="preference_trusted_callers">受信任外部调用者</string>
     <string name="preference_trusted_callers_summary">勾选的应用可通过 Z-Flow 的能力接口领取小窗启动令牌（如配合 GestureEVO 等手势工具）</string>
