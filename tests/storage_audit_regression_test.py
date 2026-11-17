@@ -153,7 +153,7 @@ class StorageAuditRegressionTest(unittest.TestCase):
         source = (BASE / 'xposed/hook/MainHook.kt').read_text()
         self.assertNotIn('pkg.contains(', source)
         for package in ['com.android.launcher3', 'com.google.android.apps.nexuslauncher']:
-            self.assertIn('pkg == "' + package + '"', source)
+            self.assertIn('packageName == "' + package + '"', source)
         self.assertIn('HookMyself.init()', source)
         self.assertIn('return false;', (BASE / 'xposed/hook/utils/HookTest.java').read_text())
 
