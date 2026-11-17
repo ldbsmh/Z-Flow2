@@ -92,23 +92,14 @@ object FreeformManagerProxy : IFreeformManager, IBinder.DeathRecipient {
         pendingIntent: PendingIntent?,
         userId: Int,
         taskId: Int,
-        freeformDpi: Int,
-        freeformSize: Int,
-        freeformSizeLand: Int,
-        floatViewSize: Int,
-        dimAmount: Int,
-        manualAdjustFreeformRotation: Boolean,
         sourceRotation: Int,
         sourceScreenWidth: Int,
         sourceScreenHeight: Int,
-        dockStyle: Int,
-        imeDoubleTapRetrigger: Boolean
+        dockStyle: Int
     ) {
         service?.createWindow(
             componentName, pendingIntent, userId, taskId,
-            freeformDpi, freeformSize, freeformSizeLand, floatViewSize,
-            dimAmount, manualAdjustFreeformRotation, sourceRotation,
-            sourceScreenWidth, sourceScreenHeight, dockStyle, imeDoubleTapRetrigger
+            sourceRotation, sourceScreenWidth, sourceScreenHeight, dockStyle
         )
     }
 
@@ -117,23 +108,14 @@ object FreeformManagerProxy : IFreeformManager, IBinder.DeathRecipient {
         pendingIntent: PendingIntent?,
         userId: Int,
         taskId: Int,
-        freeformDpi: Int,
-        freeformSize: Int,
-        freeformSizeLand: Int,
-        floatViewSize: Int,
-        dimAmount: Int,
-        manualAdjustFreeformRotation: Boolean,
         sourceRotation: Int,
         sourceScreenWidth: Int,
         sourceScreenHeight: Int,
-        dockStyle: Int,
-        imeDoubleTapRetrigger: Boolean
+        dockStyle: Int
     ) {
         service?.createMiniWindow(
             componentName, pendingIntent, userId, taskId,
-            freeformDpi, freeformSize, freeformSizeLand, floatViewSize,
-            dimAmount, manualAdjustFreeformRotation, sourceRotation,
-            sourceScreenWidth, sourceScreenHeight, dockStyle, imeDoubleTapRetrigger
+            sourceRotation, sourceScreenWidth, sourceScreenHeight, dockStyle
         )
     }
 

@@ -12,19 +12,17 @@ interface IFreeformManager {
     int getUid();
 
     // Window management
+    // 外观参数（DPI/尺寸/透明度/旋转/输入法）已无设置入口，由内核侧取默认值，
+    // 这里只保留随请求变化、无法在服务端推导的几项。
     void createWindow(in ComponentName componentName, in PendingIntent pendingIntent,
                       int userId, int taskId,
-                      int freeformDpi, int freeformSize, int freeformSizeLand,
-                      int floatViewSize, int dimAmount, boolean manualAdjustFreeformRotation,
                       int sourceRotation, int sourceScreenWidth, int sourceScreenHeight,
-                      int dockStyle, boolean imeDoubleTapRetrigger);
+                      int dockStyle);
 
     void createMiniWindow(in ComponentName componentName, in PendingIntent pendingIntent,
                           int userId, int taskId,
-                          int freeformDpi, int freeformSize, int freeformSizeLand,
-                          int floatViewSize, int dimAmount, boolean manualAdjustFreeformRotation,
                           int sourceRotation, int sourceScreenWidth, int sourceScreenHeight,
-                          int dockStyle, boolean imeDoubleTapRetrigger);
+                          int dockStyle);
                           
     void destroyWindow(int displayId);
     void destroyAllWindows();

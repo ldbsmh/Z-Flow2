@@ -205,7 +205,14 @@ final class WindowControls {
                             downX=e.getRawX();downY=e.getRawY();
                             baseX=endX=x;baseY=endY=y;
                             basePlacement=new Geometry.Placement(logicalW,logicalH,scale,x,y);
-                            WindowManager.LayoutParams p=params.get(0);barBaseX=p.x+(edgeSide<0?dp(14):p.width-dp(14));barBaseY=p.y+p.height/2f;
+                            WindowManager.LayoutParams p=params.get(0);
+                            /*
+                             * 基点必须是绘制方块的真实中心，否则起拖瞬间图标先跳一下再跟手：
+                             * 左侧方块贴着屏幕外侧，可见部分只是它的右段，中心在
+                             * p.x + size*(dockReveal-.5)；右侧方块从窗口左边起画，中心在 p.x + size/2。
+                             */
+                            float barSize=dp(60);
+                            barBaseX=p.x+(edgeSide<0?barSize*(dockReveal-.5f):barSize/2f);barBaseY=p.y+p.height/2f;
                             return true;
                         }
                     }

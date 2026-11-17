@@ -337,15 +337,9 @@ object FreeformRequestHandler {
         XLog.w("$TAG create: nc engine unavailable, falling back to legacy window for $packageName")
 
         val sp = context.getSharedPreferences(ZFlow.APP_SETTINGS_NAME, Context.MODE_PRIVATE)
-        // 与 system_server 侧一致：DPI 实际跟随物理屏幕，这里仅作占位传递。
-        val freeformDpi = sp.getInt("freeform_scale", context.resources.displayMetrics.densityDpi)
-        val freeformSize = sp.getInt("freeform_size", 75)
-        val freeformSizeLand = sp.getInt("freeform_size_land", 90)
-        val floatViewSize = sp.getInt("freeform_float_view_size", 25)
-        val dimAmount = sp.getInt("freeform_dimming_amount", 20)
-        val manualAdjustFreeformRotation = sp.getBoolean("manual_adjust_freeform_rotation", false)
+        // 贴边把手露出比例是唯一还活着的窗口外观设置；其余外观参数已无入口，
+        // 由 FreeformManager 侧取默认值，不再逐个穿到这里。
         val dockStyle = sp.getInt("freeform_dock_style", 100)
-        val imeDoubleTapRetrigger = sp.getBoolean("ime_double_tap_retrigger", true)
 
         XLog.i(
             "$TAG create component=$componentName userId=$userId taskId=$taskId " +
@@ -362,18 +356,12 @@ object FreeformRequestHandler {
         if (miniMode) {
             proxy.createMiniWindow(
                 componentName, pendingIntent, userId, taskId,
-                freeformDpi, freeformSize, freeformSizeLand, floatViewSize,
-                dimAmount, manualAdjustFreeformRotation,
-                sourceRotation, sourceScreenWidth, sourceScreenHeight, dockStyle,
-                imeDoubleTapRetrigger
+                sourceRotation, sourceScreenWidth, sourceScreenHeight, dockStyle
             )
         } else {
             proxy.createWindow(
                 componentName, pendingIntent, userId, taskId,
-                freeformDpi, freeformSize, freeformSizeLand, floatViewSize,
-                dimAmount, manualAdjustFreeformRotation,
-                sourceRotation, sourceScreenWidth, sourceScreenHeight, dockStyle,
-                imeDoubleTapRetrigger
+                sourceRotation, sourceScreenWidth, sourceScreenHeight, dockStyle
             )
         }
         return true

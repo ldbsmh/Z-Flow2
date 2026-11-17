@@ -55,11 +55,6 @@ final class Geometry {
         float width=p.width()*p.scale();
         return proposedX<=-width/3?-1:proposedX+width>=displayWidth+width/3?1:0;
     }
-    static int hideSide(Placement p,float proposedX,int left,int right,float margin){
-        if(!Float.isFinite(proposedX))throw new IllegalArgumentException("position");
-        float center=proposedX+p.width()*p.scale()/2;
-        return center<=left+margin?-1:center>=right-margin?1:0;
-    }
     static Placement offscreen(Placement p,int side,int left,int right,float gap){
         if(side!=-1&&side!=1)throw new IllegalArgumentException("edge");
         return new Placement(p.width(),p.height(),p.scale(),side<0?left-p.width()*p.scale()-gap:right+gap,p.y());

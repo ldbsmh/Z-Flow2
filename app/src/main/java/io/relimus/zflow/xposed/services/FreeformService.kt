@@ -108,18 +108,9 @@ class FreeformService : Service() {
         XLog.w("FreeformService: nc engine unavailable, fallback to legacy for $packageName")
 
         val sp = getSharedPreferences(ZFlow.APP_SETTINGS_NAME, MODE_PRIVATE)
-        // DPI 由 system_server 中的 FreeformManager 强制跟随物理屏幕，
-        // 这里只保留配置项传参，实际不影响 VirtualDisplay DPI。
-        val freeformDpi = sp.getInt("freeform_scale", resources.displayMetrics.densityDpi)
-        val freeformSize = sp.getInt("freeform_size", 75)
-        val freeformSizeLand = sp.getInt("freeform_size_land", 90)
-        val floatViewSize = sp.getInt("freeform_float_view_size", 25)
-        val dimAmount = sp.getInt("freeform_dimming_amount", 20)
-        val manualAdjustFreeformRotation = sp.getBoolean("manual_adjust_freeform_rotation", false)
+        // 外观参数已无设置入口（DPI/尺寸/透明度/旋转/输入法由 system_server 侧取默认值），
+        // 只剩贴边把手露出比例还随用户配置变化。
         val dockStyle = sp.getInt("freeform_dock_style", 100)
-        // 默认开启：这个开关控制的是「双击底栏中部重唤输入法」，
-        // 它本身就是为解决小窗内键盘唤不出而加的兜底能力。
-        val imeDoubleTapRetrigger = sp.getBoolean("ime_double_tap_retrigger", true)
 
         XLog.d(
             "FreeformService: create component=$componentName userId=$userId taskId=$taskId " +
@@ -132,17 +123,10 @@ class FreeformService : Service() {
                 pendingIntent,
                 userId,
                 taskId,
-                freeformDpi,
-                freeformSize,
-                freeformSizeLand,
-                floatViewSize,
-                dimAmount,
-                manualAdjustFreeformRotation,
                 sourceRotation,
                 sourceScreenWidth,
                 sourceScreenHeight,
-                dockStyle,
-                imeDoubleTapRetrigger
+                dockStyle
             )
         } else {
             proxy.createWindow(
@@ -150,17 +134,10 @@ class FreeformService : Service() {
                 pendingIntent,
                 userId,
                 taskId,
-                freeformDpi,
-                freeformSize,
-                freeformSizeLand,
-                floatViewSize,
-                dimAmount,
-                manualAdjustFreeformRotation,
                 sourceRotation,
                 sourceScreenWidth,
                 sourceScreenHeight,
-                dockStyle,
-                imeDoubleTapRetrigger
+                dockStyle
             )
         }
     }

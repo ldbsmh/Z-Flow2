@@ -690,23 +690,14 @@ object FreeformManager : IFreeformManager.Stub() {
         pendingIntent: PendingIntent?,
         userId: Int,
         taskId: Int,
-        freeformDpi: Int,
-        freeformSize: Int,
-        freeformSizeLand: Int,
-        floatViewSize: Int,
-        dimAmount: Int,
-        manualAdjustFreeformRotation: Boolean,
         sourceRotation: Int,
         sourceScreenWidth: Int,
         sourceScreenHeight: Int,
-        dockStyle: Int,
-        imeDoubleTapRetrigger: Boolean
+        dockStyle: Int
     ) {
         createWindowInternal(
             componentName, pendingIntent, userId, taskId,
-            freeformDpi, freeformSize, freeformSizeLand, floatViewSize,
-            dimAmount, manualAdjustFreeformRotation, sourceRotation, sourceScreenWidth,
-            sourceScreenHeight, dockStyle, imeDoubleTapRetrigger,
+            sourceRotation, sourceScreenWidth, sourceScreenHeight, dockStyle,
             directToMini = false
         )
     }
@@ -716,23 +707,14 @@ object FreeformManager : IFreeformManager.Stub() {
         pendingIntent: PendingIntent?,
         userId: Int,
         taskId: Int,
-        freeformDpi: Int,
-        freeformSize: Int,
-        freeformSizeLand: Int,
-        floatViewSize: Int,
-        dimAmount: Int,
-        manualAdjustFreeformRotation: Boolean,
         sourceRotation: Int,
         sourceScreenWidth: Int,
         sourceScreenHeight: Int,
-        dockStyle: Int,
-        imeDoubleTapRetrigger: Boolean
+        dockStyle: Int
     ) {
         createWindowInternal(
             componentName, pendingIntent, userId, taskId,
-            freeformDpi, freeformSize, freeformSizeLand, floatViewSize,
-            dimAmount, manualAdjustFreeformRotation, sourceRotation, sourceScreenWidth,
-            sourceScreenHeight, dockStyle, imeDoubleTapRetrigger,
+            sourceRotation, sourceScreenWidth, sourceScreenHeight, dockStyle,
             directToMini = true
         )
     }
@@ -742,17 +724,10 @@ object FreeformManager : IFreeformManager.Stub() {
         pendingIntent: PendingIntent?,
         userId: Int,
         taskId: Int,
-        freeformDpi: Int,
-        freeformSize: Int,
-        freeformSizeLand: Int,
-        floatViewSize: Int,
-        dimAmount: Int,
-        manualAdjustFreeformRotation: Boolean,
         sourceRotation: Int,
         sourceScreenWidth: Int,
         sourceScreenHeight: Int,
         dockStyle: Int,
-        imeDoubleTapRetrigger: Boolean,
         directToMini: Boolean
     ) {
         if (!isReady) {
@@ -846,17 +821,19 @@ object FreeformManager : IFreeformManager.Stub() {
                     taskId
                 )
 
-                // DPI 将在 FreeformWindow 内部强制跟随物理屏幕
+                /*
+                 * 外观参数已经没有设置入口，经典内核兜底路径固定使用原来的默认值。
+                 * freeformDpi 会在 FreeformWindow 内部强制跟随物理屏幕，故不传。
+                 */
                 val config = FreeformConfig(
-                    freeformDpi = freeformDpi, // 传入但最终会被覆盖
-                    freeformSize = freeformSize / 100f,
-                    freeformSizeLand = freeformSizeLand / 100f,
-                    floatViewSize = floatViewSize / 100f,
-                    dimAmount = dimAmount / 100f,
-                    manualAdjustFreeformRotation = manualAdjustFreeformRotation,
+                    freeformSize = 0.75f,
+                    freeformSizeLand = 0.90f,
+                    floatViewSize = 0.25f,
+                    dimAmount = 0.20f,
+                    manualAdjustFreeformRotation = false,
                     defaultLandscape = isLandscapeApp(componentName?.packageName),
                     dockStyle = dockStyle,
-                    imeDoubleTapRetrigger = imeDoubleTapRetrigger
+                    imeDoubleTapRetrigger = true
                 )
 
                 val inheritedLocation = if (directToMini) {

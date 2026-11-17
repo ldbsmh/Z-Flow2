@@ -260,9 +260,9 @@ SystemUI 侧从「一个 `miniControls`」改成「按 taskId 复用的 `WindowC
 其余外观项（`freeform_size` / `freeform_size_land` / `freeform_float_view_size` /
 `freeform_dimming_amount` / `freeform_scale` / `manual_adjust_freeform_rotation` /
 `ime_double_tap_retrigger`）与整块「小窗外观与尺寸」页面、`window_engine`（内核选择）、
-`max_freeform_windows`（小窗数量上限）仍已删除——引擎不消费它们，留着就是「调了没反应」。
-这些键在代码里以默认值兜底（`FreeformRequestHandler` / `FreeformService` 读不到就用默认），
-经典内核回退路径不会崩，只是没有可调项。
+`max_freeform_windows`（小窗数量上限）已删除——引擎不消费它们，留着就是「调了没反应」。
+这些键在代码里也**不再被读取**：经典内核回退路径由 `FreeformManager` 直接给默认值，
+`IFreeformManager` 的开窗签名因此只剩「随请求变化」的几项。
 
 | 设置页键 | 原语义 |
 |---|---|
@@ -270,15 +270,14 @@ SystemUI 侧从「一个 `miniControls`」改成「按 taskId 复用的 `WindowC
 | `freeform_size_land` | 横屏小窗大小 |
 | `freeform_float_view_size` | 小窗悬浮窗大小 |
 | `freeform_dimming_amount` | 小窗背景变暗程度 |
-| `freeform_dock_style` | 贴边把手露出比例 |
 | `freeform_scale` | 小窗内界面缩放（DPI） |
 | `manual_adjust_freeform_rotation` | 手动调整小窗方向 |
 | `ime_double_tap_retrigger` | 双击底栏中部重唤输入法 |
 
 连同整块「小窗外观与尺寸」页面、`window_engine`（内核选择）、
-`max_freeform_windows`（小窗数量上限）一起去掉。键仍在代码里以默认值兜底
-（`FreeformRequestHandler` / `FreeformService` 读不到就走默认），所以经典内核
-回退路径不会崩，只是没有可调项。
+`max_freeform_windows`（小窗数量上限）一起去掉。键与对应的 AIDL 参数都已移除，
+经典内核回退路径用固定默认值（`0.75 / 0.90 / 0.25 / 0.20 / false / true`），
+只会少掉可调项，不会崩。
 
 `popup_bubble_block` 属于通知气泡拦截，不在小窗链路上，没有搬。
 

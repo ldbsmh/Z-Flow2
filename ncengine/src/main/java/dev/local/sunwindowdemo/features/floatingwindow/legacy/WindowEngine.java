@@ -128,7 +128,7 @@ final class WindowEngine {
             data.enforceInterface(Wire.CHANNEL);
             Intent i=Intent.CREATOR.createFromParcel(data);data.enforceNoDataAvail();
             String op=i.getStringExtra("op");
-            if(!java.util.Set.of("RESIZE","END_RESIZE","MOVE","RELEASE","DOCK","MINI","NORMAL","FULL","CLOSE","MINI_SIZE","MUTE","RESTORE_MINI","MINI_DRAG","MINI_DRAG_CANCEL","EDGE_DRAG","EDGE_DOCK","EDGE_BAR_DRAG","EDGE_BAR_DOCK","EDGE_DRAG_CANCEL").contains(op==null?"":op))return false;
+            if(!java.util.Set.of("RESIZE","END_RESIZE","MOVE","RELEASE","DOCK","MINI","NORMAL","FULL","CLOSE","MINI_SIZE","MUTE","RESTORE_MINI","MINI_DRAG","MINI_DRAG_CANCEL","EDGE_BAR_DRAG","EDGE_BAR_DOCK","EDGE_DRAG_CANCEL").contains(op==null?"":op))return false;
             handler.post(()->enqueueControl(i));return true;
         }
     };
@@ -497,7 +497,7 @@ final class WindowEngine {
             if ("CANCEL_OPEN".equals(op)) { cancelRecoveryOpen(i.getStringExtra("token"));return; }
             if ("GESTURE".equals(op)) { openGeneration++;cancelRecoveryOpen(null);cancelStart("gesture");trace.stop();gestureStart(new Intent(i).putExtra("generation",openGeneration));return; }
             if ("OPEN".equals(op)) { openGeneration++;cancelRecoveryOpen(null);cancelStart("open");trace.stop();open(new Intent(i).putExtra("generation",openGeneration),0); return; }
-            if ("CLOSE".equals(op)||"NORMAL".equals(op)||"MINI".equals(op)||"FULL".equals(op)||"RESIZE".equals(op)||"END_RESIZE".equals(op)||"RELEASE".equals(op)||"MOVE".equals(op)||"DOCK".equals(op)||"MINI_SIZE".equals(op)||"MUTE".equals(op)||"RESTORE_MINI".equals(op)||"MINI_DRAG".equals(op)||"MINI_DRAG_CANCEL".equals(op)||"EDGE_DRAG".equals(op)||"EDGE_DOCK".equals(op)||"EDGE_BAR_DRAG".equals(op)||"EDGE_BAR_DOCK".equals(op)||"EDGE_DRAG_CANCEL".equals(op)) {
+            if ("CLOSE".equals(op)||"NORMAL".equals(op)||"MINI".equals(op)||"FULL".equals(op)||"RESIZE".equals(op)||"END_RESIZE".equals(op)||"RELEASE".equals(op)||"MOVE".equals(op)||"DOCK".equals(op)||"MINI_SIZE".equals(op)||"MUTE".equals(op)||"RESTORE_MINI".equals(op)||"MINI_DRAG".equals(op)||"MINI_DRAG_CANCEL".equals(op)||"EDGE_BAR_DRAG".equals(op)||"EDGE_BAR_DOCK".equals(op)||"EDGE_DRAG_CANCEL".equals(op)) {
                 control(i); return;
             }
             if ("RESTORE".equals(op)) {
@@ -1514,15 +1514,6 @@ final class WindowEngine {
                 WindowControl.Edge docked=WindowControl.edgeBarDock(s.miniPlacement,x,y,controlSafe(safe,margin),s.displayW);
                 s.miniPlacement=docked.mini();s.edgeSide=docked.side();s.placement=docked.placement();
                 s.edgeDragBase=null;s.edgeBarDragging=docked.barDragging();
-            }else{
-                if("EDGE_DOCK".equals(op)){s.edgeDragBase=null;s.edgeBarDragging=false;s.animationRev++;}
-                WindowControl.Dock moved=WindowControl.edgeMove(p,x,y,controlSafe(safe,margin),"EDGE_DOCK".equals(op),s.displayW);
-                Geometry.Placement destination=moved.placement();
-                if("EDGE_DOCK".equals(op)){
-                    if(moved.hiddenSide()!=0){hideMini(s,p,moved.hiddenSide(),destination.y(),safe,margin);return;}
-                    s.edgeHidden=false;s.miniPlacement=destination;animate(s,p,destination,false,0,0);return;
-                }
-                s.placement=destination;
             }
             renderFrame(s);frameReport(op);
         }

@@ -72,16 +72,6 @@ final class WindowControl {
         Geometry.Placement visible=hiddenMini(mini,side,y-mini.height()*mini.scale()/2,safe);
         return new Edge(Geometry.offscreen(visible,side,0,displayWidth,safe.margin),visible,side,true,false,x,y);
     }
-    static Dock edgeMove(Geometry.Placement p,float x,float y,Safe safe,boolean dock,int displayWidth){
-        // Edge drags are validated by the caller before native safe-area sampling.
-        y=Math.max(safe.top,Math.min(y,safe.bottom-p.height()*p.scale()));
-        Geometry.Placement destination=new Geometry.Placement(p.width(),p.height(),p.scale(),x,y);
-        if(dock){
-            int side=Geometry.hideSide(destination,x,displayWidth);if(side!=0)return new Dock(destination,side);
-            destination=new Geometry.Placement(p.width(),p.height(),p.scale(),dockX(p,x,safe),y);
-        }
-        return new Dock(destination,0);
-    }
     static Geometry.Placement miniTarget(Geometry.Placement start,Geometry.Placement retained,float normal,Safe safe,boolean large){
         return retained==null?Geometry.miniTopRight(start,normal,safe.left,safe.top,safe.right,safe.bottom,safe.margin,large)
             :Geometry.resizeMini(retained,normal,safe.left,safe.top,safe.right,safe.bottom,safe.margin,large);
