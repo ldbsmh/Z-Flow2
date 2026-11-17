@@ -3,26 +3,19 @@ package io.relimus.zflow.service
 import android.content.Context
 import android.content.Intent
 import dev.local.sunwindowdemo.Engine
-import io.relimus.zflow.providers.WindowEngineSettings
 import io.relimus.zflow.xposed.hook.utils.XLog
 
 /**
  * 小窗后端：把 Z-Flow 的入口接到 NativeComplements 内核。
  *
- * 内核选择（NC / 经典虚拟屏）已随设置页精简移除：现在固定走 NC。经典虚拟屏保留为
- * 引擎总开关关闭、或开窗调用抛异常时的内部兜底，不再对用户暴露，也不再读取外观设置。
- *
+ * 内核固定为 NC：经典虚拟屏已整体移除，没有第二条开窗路径。
  * 该对象只负责“开哪个应用”，窗口控件、迷你窗、贴边停靠由 ncengine 的 SystemUI 宿主负责。
  */
 object NcWindowBackend {
 
     private const val TAG = "NcWindowBackend"
 
-    /**
-     * 走新内核开窗。
-     *
-     * @return true 表示请求已交给引擎；false 表示引擎不可用，调用方应回退旧路径。
-     */
+    /** @return true 表示请求已交给引擎；false 表示引擎调用抛异常，调用方记日志即可。 */
     fun openApp(
         context: Context,
         packageName: String,
@@ -30,12 +23,6 @@ object NcWindowBackend {
         taskId: Int = -1,
     ): Boolean {
         return try {
-            syncEnabled(context)
-            if (!WindowEngineSettings.enabled(context)) {
-                // 引擎总开关关掉：不接管，交给调用方回退经典虚拟屏内核。
-                XLog.i("$TAG: engine disabled, fallback to legacy pkg=$packageName")
-                return false
-            }
             Engine.openApp(context, packageName, taskId, miniMode)
             XLog.i("$TAG: OPEN via nc engine pkg=$packageName task=$taskId mini=$miniMode")
             // logcat 也能看到这一行：`adb logcat -s ZFlowMini`。
@@ -57,11 +44,6 @@ object NcWindowBackend {
         fill: Intent?
     ): Boolean {
         return try {
-            syncEnabled(context)
-            if (!WindowEngineSettings.enabled(context)) {
-                XLog.i("$TAG: engine disabled, fallback to legacy (notification) pkg=$packageName")
-                return false
-            }
             Engine.openNotification(context, packageName, launch, fill)
             XLog.i("$TAG: OPEN(notification) via nc engine pkg=$packageName")
             true
@@ -70,25 +52,4 @@ object NcWindowBackend {
             false
         }
     }
-
-    /**
-     * 首次开窗时把引擎总开关投影到 PM 组件状态（system_server 启动时靠它决定是否安装后端）。
-     *
-     * 只在「设置页开关为开」时做，并且每个进程只做一次：`Engine.setEnabled` 写的是
-     * `corner.enabled`，用户手动关掉后不能被这里悄悄打开。
-     */
-    private fun syncEnabled(context: Context) {
-        if (engineProjected) return
-        if (!WindowEngineSettings.enabled(context)) return
-        try {
-            Engine.setEnabled(context, true)
-            engineProjected = true
-        } catch (t: Throwable) {
-            XLog.w("$TAG: sync engine enabled failed: ${t.message}")
-        }
-    }
-
-    /** 本进程是否已经完成过一次开关投影。 */
-    @Volatile
-    private var engineProjected = false
 }

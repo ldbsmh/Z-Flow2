@@ -7,7 +7,6 @@ import android.content.Intent
 import android.util.Log
 import io.relimus.zflow.security.BroadcastAuth
 import io.relimus.zflow.service.FreeformRequestHandler
-import io.relimus.zflow.xposed.services.FreeformService
 
 /** Request construction/validation only. FreeformRequestReceiver is the sole registered receiver. */
 class StartFreeformReceiver private constructor() {
@@ -23,9 +22,10 @@ class StartFreeformReceiver private constructor() {
         const val EXTRA_USER_ID = "userId"
         const val EXTRA_MINI_MODE = "mini_mode"
         const val EXTRA_SOURCE = "source"
-        const val EXTRA_SOURCE_ROTATION = "source_rotation"
-        const val EXTRA_SOURCE_SCREEN_WIDTH = "source_screen_width"
-        const val EXTRA_SOURCE_SCREEN_HEIGHT = "source_screen_height"
+        /** 被上滑卡片的 taskId；多任务卡片上滑时引擎直接接管该任务。 */
+        const val EXTRA_TASK_ID = "task_id"
+        /** 通知的 content PendingIntent，用于保留原始着陆页。 */
+        const val EXTRA_PENDING_INTENT = "notification_content_intent"
         const val SOURCE_POPUP = "popup"
         const val SOURCE_RECENT_SWIPE = "recent_swipe"
         const val SOURCE_NOTIFICATION = "notification"
@@ -41,10 +41,7 @@ class StartFreeformReceiver private constructor() {
             userId: Int = 0,
             miniMode: Boolean = false,
             taskId: Int = -1,
-            source: String = "",
-            sourceRotation: Int = -1,
-            sourceScreenWidth: Int = 0,
-            sourceScreenHeight: Int = 0
+            source: String = ""
         ): Intent = Intent(ACTION_START).apply {
             component = ComponentName(TARGET_PACKAGE, FreeformRequestReceiver::class.java.name)
             setPackage(TARGET_PACKAGE)
@@ -53,11 +50,8 @@ class StartFreeformReceiver private constructor() {
             if (activityName != null) putExtra(EXTRA_ACTIVITY_NAME, activityName)
             putExtra(EXTRA_USER_ID, userId)
             putExtra(EXTRA_MINI_MODE, miniMode)
-            putExtra(FreeformService.EXTRA_TASK_ID, taskId)
+            putExtra(EXTRA_TASK_ID, taskId)
             putExtra(EXTRA_SOURCE, source)
-            putExtra(EXTRA_SOURCE_ROTATION, sourceRotation)
-            putExtra(EXTRA_SOURCE_SCREEN_WIDTH, sourceScreenWidth)
-            putExtra(EXTRA_SOURCE_SCREEN_HEIGHT, sourceScreenHeight)
             BroadcastAuth.attach(context, this)
         }
 
@@ -84,13 +78,10 @@ class StartFreeformReceiver private constructor() {
                 require(target.component != null || packageName != null)
                 require(packageName == null || target.component == null || target.component!!.packageName == packageName)
                 val userId = intent.getIntExtra(EXTRA_USER_ID, 0)
-                val taskId = intent.getIntExtra(FreeformService.EXTRA_TASK_ID, -1)
+                val taskId = intent.getIntExtra(EXTRA_TASK_ID, -1)
                 val source = intent.getStringExtra(EXTRA_SOURCE).orEmpty()
-                val rotation = intent.getIntExtra(EXTRA_SOURCE_ROTATION, -1)
-                val width = intent.getIntExtra(EXTRA_SOURCE_SCREEN_WIDTH, 0)
-                val height = intent.getIntExtra(EXTRA_SOURCE_SCREEN_HEIGHT, 0)
-                require(userId >= 0 && taskId >= -1 && rotation in -1..3)
-                require(width in 0..32768 && height in 0..32768 && source.length <= 64)
+                require(userId >= 0 && taskId >= -1)
+                require(source.length <= 64)
                 Log.i(
                     "ZFlowMini",
                     "received pkg=$packageName taskId=$taskId userId=$userId " +
@@ -100,9 +91,8 @@ class StartFreeformReceiver private constructor() {
                     context = appContext, target = target, packageName = packageName,
                     userId = userId, taskId = taskId,
                     miniMode = intent.getBooleanExtra(EXTRA_MINI_MODE, false),
-                    pendingIntent = intent.getParcelableExtra(FreeformService.EXTRA_PENDING_INTENT, PendingIntent::class.java),
-                    source = source, sourceRotation = rotation,
-                    sourceScreenWidth = width, sourceScreenHeight = height,
+                    pendingIntent = intent.getParcelableExtra(EXTRA_PENDING_INTENT, PendingIntent::class.java),
+                    source = source,
                     onComplete = onComplete
                 )
             } catch (_: RuntimeException) {
@@ -118,8 +108,7 @@ class StartFreeformReceiver private constructor() {
         private fun validateTypes(intent: Intent) {
             val extras = intent.extras ?: throw IllegalArgumentException("Missing extras")
             val strings = setOf(EXTRA_PACKAGE_NAME, EXTRA_ACTIVITY_NAME, EXTRA_SOURCE, EXTRA_SENDER, EXTRA_TOKEN)
-            val ints = setOf(EXTRA_USER_ID, FreeformService.EXTRA_TASK_ID, EXTRA_SOURCE_ROTATION,
-                EXTRA_SOURCE_SCREEN_WIDTH, EXTRA_SOURCE_SCREEN_HEIGHT, BroadcastAuth.UID)
+            val ints = setOf(EXTRA_USER_ID, EXTRA_TASK_ID, BroadcastAuth.UID)
             for (key in extras.keySet()) {
                 val value = extras.get(key)
                 when (key) {
@@ -128,7 +117,7 @@ class StartFreeformReceiver private constructor() {
                     EXTRA_MINI_MODE -> require(value is Boolean)
                     Intent.EXTRA_INTENT -> require(value is Intent)
                     Intent.EXTRA_COMPONENT_NAME -> require(value is ComponentName)
-                    FreeformService.EXTRA_PENDING_INTENT -> require(value is PendingIntent)
+                    EXTRA_PENDING_INTENT -> require(value is PendingIntent)
                 }
             }
         }

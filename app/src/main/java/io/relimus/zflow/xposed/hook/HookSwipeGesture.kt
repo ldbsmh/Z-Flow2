@@ -161,10 +161,6 @@ object HookSwipeGesture {
     @Volatile
     private var lastMiniLaunchAt = 0L
 
-    private var lastScreenWidth = 0
-    private var lastScreenHeight = 0
-    private var lastRotation = -1
-
     private enum class GestureDisplayMode {
         NONE,
         PORTRAIT,
@@ -546,14 +542,6 @@ object HookSwipeGesture {
 
             append(" pendingLaunch=")
             append(pendingMiniLaunch != null)
-
-            append(" screen=")
-            append(lastScreenWidth)
-            append('x')
-            append(lastScreenHeight)
-
-            append(" rotation=")
-            append(lastRotation)
         }
     }
 
@@ -2678,7 +2666,6 @@ object HookSwipeGesture {
 
         if (ctx != null) {
             cachedSwipeContext = java.lang.ref.WeakReference(ctx)
-            updateSourceDisplayState(ctx)
         }
 
         when (action) {
@@ -2997,34 +2984,6 @@ object HookSwipeGesture {
         )
     }
 
-    @Suppress("DEPRECATION")
-    private fun updateSourceDisplayState(
-        context: Context
-    ) {
-        try {
-            val windowManager =
-                context.getSystemService(
-                    Context.WINDOW_SERVICE
-                ) as WindowManager
-
-            val metrics =
-                android.util.DisplayMetrics()
-
-            windowManager.defaultDisplay
-                .getRealMetrics(metrics)
-
-            lastScreenWidth =
-                metrics.widthPixels
-
-            lastScreenHeight =
-                metrics.heightPixels
-
-            lastRotation =
-                windowManager.defaultDisplay.rotation
-        } catch (_: Throwable) {
-        }
-    }
-
     private fun readProgress(
         handler: Any
     ): Float {
@@ -3209,7 +3168,7 @@ object HookSwipeGesture {
              *    是常态，若按“黑名单”处理，用户会周期性遇到“手势完全没反应”，
              *    而且没有任何提示，属于把安全策略的代价转嫁给了主功能。
              *  - 真正的黑名单校验还有一道在 App 进程内
-             *    （FreeformRequestHandler / FreeformService 直接查 Room，失败才拒绝），
+             *    （FreeformRequestHandler 直接查 Room，失败才拒绝），
              *    所以这里放宽不会让黑名单应用被打开。
              *
              * 结论：hook 侧只负责“尽量过滤”，最终裁决留给 App 进程。
@@ -3353,10 +3312,7 @@ object HookSwipeGesture {
                         userId = userId,
                         miniMode = true,
                         taskId = taskId,
-                        source = StartFreeformReceiver.SOURCE_RECENT_SWIPE,
-                        sourceRotation = lastRotation,
-                        sourceScreenWidth = lastScreenWidth,
-                        sourceScreenHeight = lastScreenHeight
+                        source = StartFreeformReceiver.SOURCE_RECENT_SWIPE
                     )
 
                     context.sendBroadcast(intent)

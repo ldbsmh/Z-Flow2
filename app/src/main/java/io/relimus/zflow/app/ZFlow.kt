@@ -2,27 +2,18 @@ package io.relimus.zflow.app
 
 import android.app.Application
 import android.content.Context
-import android.os.Handler
-import androidx.lifecycle.MutableLiveData
 import com.google.android.material.color.DynamicColors
-import io.relimus.zflow.service.FreeformManagerProxy
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 /**
- * Application class for Z-Flow
- * Now uses Xposed-based FreeformManager instead of Shizuku.
+ * Application class for Z-Flow.
+ *
+ * 小窗内核跑在 system_server / SystemUI（ncengine），应用进程不再持有任何
+ * system_server binder，因此这里没有“服务是否连上”的状态需要维护。
  */
 class ZFlow : Application() {
-    val isRunning = MutableLiveData(false)
-
-    /**
-     * Client-side proxy for FreeformManager service running in system_server.
-     */
-    val freeformManagerProxy: FreeformManagerProxy
-        get() = FreeformManagerProxy
 
     companion object {
-        lateinit var me: ZFlow
         const val PACKAGE_NAME = "io.relimus.zflow"
         const val VERSION_PRIVACY = 1
         const val APP_SETTINGS_NAME = "app_settings"
@@ -49,37 +40,12 @@ class ZFlow : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        me = this
 
         DynamicColors.applyToActivitiesIfAvailable(this)
-
-        // Check if FreeformManager is connected
-        checkServiceConnection()
     }
 
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
         HiddenApiBypass.addHiddenApiExemptions("")
-    }
-
-    /**
-     * Check if FreeformManager service is connected via Xposed.
-     * The binder link is established automatically when the app starts
-     * via UserService in system_server.
-     */
-    private fun checkServiceConnection() {
-        Handler(mainLooper).postDelayed({
-            isRunning.postValue(
-                FreeformManagerProxy.isConnected && FreeformManagerProxy.isServiceReady()
-            )
-        }, 500)
-    }
-
-    /**
-     * Retry connection check.
-     * Called when UI wants to refresh status.
-     */
-    fun recheckConnection() {
-        checkServiceConnection()
     }
 }
