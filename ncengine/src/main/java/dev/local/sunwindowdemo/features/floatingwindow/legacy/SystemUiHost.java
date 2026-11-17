@@ -167,8 +167,6 @@ public final class SystemUiHost extends ContextWrapper implements ComponentCallb
             minis.remove(drop);
         }
     }
-    private boolean normalOccupied;
-    private boolean dropAvailable(){return WindowHostPolicy.defaultSlot(backendState,normalOccupied);}
     private volatile HostExtras extras;
     private int suggestionImeTop=Integer.MAX_VALUE;
     void suggestionNotification(android.service.notification.NotificationListenerService source,android.service.notification.StatusBarNotification notification){
@@ -192,7 +190,6 @@ public final class SystemUiHost extends ContextWrapper implements ComponentCallb
         if(cleaned||controls==null)return;
         backendState=i.getStringExtra("state");
         backendReady=!"conflict".equals(backendState)&&!i.getBooleanExtra("ownershipConflict",false);
-        normalOccupied=i.getBooleanExtra("normalOccupied",true);
         if(!dev.local.sunwindowdemo.core.ModuleIdentity.CURRENT.standalone())
             delegatedToStandalone=!backendReady&&i.getBooleanExtra("delegatedToStandalone",false)
                 &&dev.local.sunwindowdemo.core.ModuleIdentity.WINDOW_PACKAGE.equals(i.getStringExtra("backendOwner"));

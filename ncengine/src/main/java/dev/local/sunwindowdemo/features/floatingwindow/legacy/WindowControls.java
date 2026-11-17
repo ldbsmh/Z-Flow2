@@ -411,7 +411,6 @@ final class WindowControls {
         if(motionOp==null)return;String op=motionOp;motionOp=null;
         if(token!=null)Wire.control(c,op,token,taskId,motionScale,motionX,motionY);
     }
-    private void sendMove(String op,float px,float py){scheduleMotion(op,0,px,py);}
     private void sendMoveScale(float s){
         // Track the drag locally for zone feedback; the native transaction draws the bar.
         float cx=x+w/2,cy=y+h/2;scale=s;w=logicalW*s;h=logicalH*s;x=cx-w/2;y=cy-h/2;

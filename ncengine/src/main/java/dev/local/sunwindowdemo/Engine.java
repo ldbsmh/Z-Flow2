@@ -59,6 +59,4 @@ public final class Engine {
         context.sendBroadcast(new Intent(ConfigProvider.CHANGED).setPackage("com.android.systemui"),
             null,android.app.BroadcastOptions.makeBasic().setShareIdentityEnabled(true).toBundle());
     }
-
-    public static String modulePackage(){return Wire.PKG;}
 }

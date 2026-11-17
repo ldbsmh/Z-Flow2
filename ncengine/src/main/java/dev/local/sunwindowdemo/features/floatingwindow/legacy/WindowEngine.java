@@ -222,7 +222,6 @@ final class WindowEngine {
     }
     private boolean visible(Session s){return s!=null&&(s==active||pinned.contains(s));}
     private boolean isPinned(Session s){return s!=null&&pinned.contains(s);}
-    private Session firstPinned(){java.util.List<Session> l=pinned;return l.isEmpty()?null:l.get(0);}
     /** 追加/刷新一个挂起的迷你窗；同一会话重复调用只更新顺序。 */
     private void addPinned(Session s){
         if(s==null)return;
@@ -2435,7 +2434,6 @@ final class WindowEngine {
         return found[0];
     }
     int clientMode(Object owner){return WindowPolicy.clientMode(owner instanceof Session s?s.pkg:null);}
-    boolean ownsClientWindow(Object client)throws Exception{return clientOwner(client)!=null;}
     Object clientInsets(Object client,Object original)throws Exception{
         if(original==null||!(client instanceof IInterface))return original;
         return ownerInsets(clientOwner(client),original);
