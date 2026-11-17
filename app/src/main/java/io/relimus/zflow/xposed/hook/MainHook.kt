@@ -47,7 +47,10 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
          * [HookRegistry.generation] 判重（`inited && hookGeneration == generation` 时直接返回），
          * 重复分发只会多走一次 reset + 重新挂载，不会挂两套回调。
          *
-         * @param packageName 目标进程的包名（system_server 传 `"android"`）。
+         * Z-Flow 自己只 hook 桌面、SystemUI 和本应用；system_server 侧的小窗引擎由
+         * ncengine 的 `SunWindowModule` 独立接管，不经过这里。
+         *
+         * @param packageName 目标进程的包名。
          * @param classLoader 目标进程的 ClassLoader，用来解析 ROM 内部类。
          */
         fun dispatch(packageName: String, classLoader: ClassLoader?) {
@@ -57,37 +60,11 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             HookRegistry.reset()
 
             when (packageName) {
-                "android" -> {
-                    // 这些 Hook 都跑在 system_server 里。
-                    // 任何一个在初始化阶段抛异常，异常都会冒泡出 handleLoadPackage，
-                    // 直接导致 system_server 崩溃 → 系统软重启（开机循环）。
-                    // 这里逐个 runCatching 兜底：单个 Hook 不兼容时只禁用该功能，
-                    // 绝不让它带崩系统进程。
-                    runCatching { HookFramework.init() }
-                        .onFailure { XLog.e("HookFramework.init failed", it) }
-
-                    runCatching { HookSystem.init() }
-                        .onFailure { XLog.e("HookSystem.init failed", it) }
-
-                    runCatching { HookImeInsetsBridge.init() }
-                        .onFailure { XLog.e("HookImeInsetsBridge.init failed", it) }
-
-                    runCatching { HookImeAdjustResize.init() }
-                        .onFailure { XLog.e("HookImeAdjustResize.init failed", it) }
-
-                    runCatching { HookReload.init() }
-                        .onFailure { XLog.e("HookReload.init failed", it) }
-
-                    runCatching { HookPredictiveBack.init() }
-                        .onFailure { XLog.e("HookPredictiveBack.init failed", it) }
-                }
-
                 "io.relimus.zflow" -> {
                     HookMyself.init()
                 }
 
                 "com.android.systemui" -> {
-                    HookSystemUI.init()
                     HookNotificationAction.init()
                 }
 

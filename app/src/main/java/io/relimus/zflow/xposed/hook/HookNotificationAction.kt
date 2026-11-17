@@ -258,7 +258,7 @@ object HookNotificationAction {
                 putExtra(Intent.EXTRA_COMPONENT_NAME, component)
                 putExtra(Intent.EXTRA_INTENT, launchIntent)
                 if (contentIntent != null) {
-                    putExtra("notification_content_intent", contentIntent)
+                    putExtra(StartFreeformReceiver.EXTRA_PENDING_INTENT, contentIntent)
                 }
             }
             context.sendBroadcast(intent)
