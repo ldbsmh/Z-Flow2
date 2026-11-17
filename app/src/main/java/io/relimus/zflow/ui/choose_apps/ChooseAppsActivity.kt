@@ -124,7 +124,7 @@ class ChooseAppsActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_choose_apps, menu)
-        // 轮盘只有 6 格，「全选」会得到一个「勾满但只存了 6 个」的错觉，直接不给。
+        // 轮盘最多 13 格，「全选」会得到一个「勾满但只存了 13 个」的错觉，直接不给。
         if (viewModel.type == ChooseAppsViewModel.TYPE_RADIAL) {
             menu.findItem(R.id.choose_all)?.isVisible = false
             menu.findItem(R.id.choose_all_cancel)?.isVisible = false

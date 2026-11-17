@@ -36,16 +36,13 @@ class FreeformAppsProvider : ContentProvider() {
          * 轮盘专用的应用名单（用户在「轮盘应用」页里挑的）。
          *
          * 与 [METHOD_GET_APPS] 分开：小窗收藏应用面向的是「哪些应用允许开小窗」，
-         * 轮盘名单面向的是「手势弹出的那几个格子放谁」，两者的数量上限与
-         * 使用场景都不一样，混在一起会让用户改一处、另一处跟着变。
+         * 轮盘名单面向的是「手势弹出的那几个格子放谁」，混在一起会让用户改一处、
+         * 另一处跟着变。两份名单的格子上限没有区别，都用 [RadialAppsStore.MAX_ITEMS]。
          */
         const val METHOD_GET_RADIAL_APPS = "get_radial_apps"
 
         /** 输出 `packageName|userId` 字符串数组，顺序即收藏顺序。 */
         const val EXTRA_KEYS = "keys"
-
-        /** 轮盘最多显示 6 格，读多了也没用；顺便给跨进程数据一个上限。 */
-        const val MAX_ITEMS = 8
 
         private val LAUNCHER_PACKAGES = setOf(
             "com.android.launcher3",
@@ -72,7 +69,7 @@ class FreeformAppsProvider : ContentProvider() {
                 Bundle().apply {
                     putStringArray(
                         EXTRA_KEYS,
-                        keys.take(MAX_ITEMS).toTypedArray(),
+                        keys.take(RadialAppsStore.MAX_ITEMS).toTypedArray(),
                     )
                 }
             }

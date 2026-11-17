@@ -240,7 +240,7 @@ class ChooseAppsViewModel(application: Application) : AndroidViewModel(applicati
                     )
                 }
                 TYPE_RADIAL -> withContext(Dispatchers.IO) {
-                    // 轮盘只有 6 格，全选按列表顺序取前 6 个，不静默丢弃后面的。
+                    // 轮盘最多 13 格，全选按列表顺序取前 13 个，不静默丢弃后面的。
                     RadialAppsStore.write(
                         getApplication(),
                         allApps.map { RadialAppsStore.keyOf(it.applicationInfo.packageName, userIdOf(it)) }

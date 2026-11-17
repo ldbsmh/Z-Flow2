@@ -26,7 +26,7 @@ class AppsRecyclerAdapter(
     private val viewModel: ChooseAppsViewModel,
     selectedKeys: List<String>,
     private val type: Int,
-    /** >0 时限制最多可勾选的条数（轮盘只有 6 格），超出给一次提示。 */
+    /** >0 时限制最多可勾选的条数（轮盘最多 13 格），超出给一次提示。 */
     private val maxSelection: Int = 0,
 ) : RecyclerView.Adapter<AppsRecyclerAdapter.ViewHolder>() {
 

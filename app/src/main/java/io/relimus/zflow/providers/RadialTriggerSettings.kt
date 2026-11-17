@@ -1,6 +1,7 @@
 package io.relimus.zflow.providers
 
 import android.content.Context
+import android.content.SharedPreferences
 import io.relimus.zflow.app.ZFlow
 
 /**
@@ -27,6 +28,14 @@ object RadialTriggerSettings {
     const val KEY_MIRROR = "radial_trigger_area_mirror"
 
     /**
+     * 「旧默认值迁移已完成」标记。
+     *
+     * 迁移必须只做一次：否则用户把滑杆拖到 9（横向滑杆的合法值），
+     * 下一次 [read] 又会把他当成老用户迁到 91，表现为滑杆自己弹回去。
+     */
+    private const val KEY_CENTER_X_MIGRATED = "radial_trigger_area_x_migrated"
+
+    /**
      * 默认落在**右下角**：右手单手握持时拇指的自然落点。
      *
      * 镜像打开后左下角同样可用，所以左手用户不需要改任何设置。
@@ -37,8 +46,9 @@ object RadialTriggerSettings {
      * 旧版本的默认值（左下角）。
      *
      * 老用户机器上已经存了 9，仅改 [DEFAULT_CENTER_X] 对他们不生效，
-     * 因此 [read] 会把「还停在旧默认值」的配置迁移到新默认值；
-     * 手动把触发区摆回 9 的极少数人会被一起迁走，再拖一次即可。
+     * 因此 [read] 会把「还停在旧默认值」的配置迁移到新默认值，并写下
+     * [KEY_CENTER_X_MIGRATED] 标记 —— 迁移只发生一次，之后 9 就是普通值，
+     * 用户手动拖回左边也不会再被搬走。
      */
     const val LEGACY_DEFAULT_CENTER_X = 9
 
@@ -171,11 +181,8 @@ object RadialTriggerSettings {
     /** 进程内读取（App 进程用）。被 hook 的进程请走 [RemoteSettings]。 */
     fun read(context: Context): Config {
         val prefs = context.getSharedPreferences(ZFlow.APP_SETTINGS_NAME, Context.MODE_PRIVATE)
-        val storedX = prefs.getInt(KEY_CENTER_X, DEFAULT_CENTER_X)
         return Config(
-            // 老用户存的是旧默认值（左下角）：跟着新默认值一起换到右侧，
-            // 否则「改了默认值」只对新装用户生效，升级上来的人毫无变化。
-            centerXPercent = if (storedX == LEGACY_DEFAULT_CENTER_X) DEFAULT_CENTER_X else storedX,
+            centerXPercent = migrateCenterX(prefs),
             centerYPercent = prefs.getInt(KEY_CENTER_Y, DEFAULT_CENTER_Y),
             widthPercent = prefs.getInt(KEY_WIDTH, DEFAULT_WIDTH),
             heightPercent = prefs.getInt(KEY_HEIGHT, DEFAULT_HEIGHT),
@@ -183,11 +190,30 @@ object RadialTriggerSettings {
         ).sanitized()
     }
 
+    /**
+     * 把「还停在旧默认值」的横向位置搬到新默认值，只做一次。
+     *
+     * 迁移顺带回写：下次 [read] 直接拿存下来的值，不再走推断，
+     * 于是横向滑杆上的 9 从此是一个可以正常使用的值。
+     */
+    private fun migrateCenterX(prefs: SharedPreferences): Int {
+        val stored = prefs.getInt(KEY_CENTER_X, DEFAULT_CENTER_X)
+        if (prefs.getBoolean(KEY_CENTER_X_MIGRATED, false)) return stored
+        val migrated = if (stored == LEGACY_DEFAULT_CENTER_X) DEFAULT_CENTER_X else stored
+        val editor = prefs.edit()
+            .putBoolean(KEY_CENTER_X_MIGRATED, true)
+            .putInt(KEY_CENTER_X, migrated)
+        editor.apply()
+        return migrated
+    }
+
     fun write(context: Context, config: Config) {
         val safe = config.sanitized()
         context.getSharedPreferences(ZFlow.APP_SETTINGS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putInt(KEY_CENTER_X, safe.centerXPercent)
+            // 用户显式写过的值就是「迁移已完成」：跳过旧默认值推断。
+            .putBoolean(KEY_CENTER_X_MIGRATED, true)
             .putInt(KEY_CENTER_Y, safe.centerYPercent)
             .putInt(KEY_WIDTH, safe.widthPercent)
             .putInt(KEY_HEIGHT, safe.heightPercent)
