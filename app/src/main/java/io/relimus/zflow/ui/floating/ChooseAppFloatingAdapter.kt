@@ -102,7 +102,7 @@ class ChooseAppFloatingAdapter(
                         .into(holder.icon)
                     holder.appName.text = getLabel(appInfo, apps[position - 1].userId)
                     holder.click.setOnClickListener {
-                        // 直接转发到 system_server，跳过 FreeformService 组件启动。
+                        // 直接转发到 system_server 的引擎，不经过应用内 Service 组件。
                         // 走异步入口：create() 内部查 Room，主线程查库会失败并被拒绝。
                         FreeformRequestHandler.launchAsync(
                             context = context,

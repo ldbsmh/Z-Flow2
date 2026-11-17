@@ -47,12 +47,6 @@ class HomeFragment : Fragment(), View.OnClickListener {
         super.onViewCreated(view, savedInstanceState)
 
         sp = requireContext().getSharedPreferences(ZFlow.APP_SETTINGS_NAME, Context.MODE_PRIVATE)
-        // recheckConnection 的真实结果要 500ms 后才写入 LiveData；持续观察，
-        // 状态卡在连接建立后自动变绿，而不是每次点击都读到旧值
-        ZFlow.me.isRunning.observe(viewLifecycleOwner) {
-            checkFreeformManagerStatus()
-        }
-        checkFreeformManagerStatus()
         checkXposedPermission()
         checkAccessibilityPermission()
         renderDeviceInfo()
@@ -61,7 +55,6 @@ class HomeFragment : Fragment(), View.OnClickListener {
         }
 
         binding.materialCardViewXposedInfo.setOnClickListener(this)
-        binding.materialCardViewShizukuInfo.setOnClickListener(this)
         binding.materialCardViewAccessibilityInfo.setOnClickListener(this)
         binding.buttonPermission.setOnClickListener(this)
     }
@@ -115,20 +108,6 @@ class HomeFragment : Fragment(), View.OnClickListener {
         }
     }
     
-    private fun checkFreeformManagerStatus(): Boolean {
-        val result = ZFlow.me.isRunning.value ?: false
-        if (result) {
-            binding.infoShizukuBg.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.success_color))
-            binding.imageViewShizukuService.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_done))
-            binding.textViewShizukuServiceInfo.text = getString(R.string.xposed_service_connected)
-        } else {
-            binding.infoShizukuBg.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warn_color))
-            binding.imageViewShizukuService.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_error_white))
-            binding.textViewShizukuServiceInfo.text = getString(R.string.xposed_service_not_connected)
-        }
-        return result
-    }
-
     private fun checkXposedPermission() {
         val isActive = HookTest.checkXposed()
         if (isActive) {
@@ -157,11 +136,6 @@ class HomeFragment : Fragment(), View.OnClickListener {
                     }
                 }
             }
-            R.id.materialCardView_shizuku_info -> {
-                // 结果延迟到达，由 onViewCreated 里的 isRunning 观察者刷新状态卡
-                ZFlow.me.recheckConnection()
-            }
-
             R.id.materialCardView_accessibility_info -> {
                 MaterialAlertDialogBuilder(requireContext()).apply {
                     setTitle(getString(R.string.warn))

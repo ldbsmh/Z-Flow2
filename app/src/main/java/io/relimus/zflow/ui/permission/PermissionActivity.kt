@@ -43,14 +43,9 @@ class PermissionActivity : AppCompatActivity(), View.OnClickListener {
         }
 
         // 只注册一次：放在点击里会随点击次数累加观察者
-        ZFlow.me.isRunning.observe(this) {
-            checkShizukuPermission()
-        }
-
         binding.content.materialCardViewOverlayInfo.setOnClickListener(this)
         binding.content.materialCardViewXposedInfo.setOnClickListener(this)
         binding.content.materialCardViewAccessibilityInfo.setOnClickListener(this)
-        binding.content.materialCardViewShizukuInfo.setOnClickListener(this)
 
         checkPermission()
 
@@ -68,13 +63,12 @@ class PermissionActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun checkPermission(): Boolean {
-        checkXposedPermission()
+        val r0 = checkXposedPermission()
         checkKeepAliveService()
 
-        val r1 = checkShizukuPermission()
         val r3 = checkOverlayPermission()
 
-        return r1 && r3
+        return r0 && r3
     }
 
     private fun checkOverlayPermission(): Boolean {
@@ -126,21 +120,7 @@ class PermissionActivity : AppCompatActivity(), View.OnClickListener {
         return enabled
     }
     
-    private fun checkShizukuPermission(): Boolean {
-        val result = ZFlow.me.isRunning.value ?: false
-        if (result) {
-            binding.content.infoShizukuBg.setBackgroundColor(getColor(R.color.success_color))
-            binding.content.imageViewShizukuService.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_done))
-            binding.content.textViewShizukuServiceInfo.text = getString(R.string.xposed_service_connected)
-        } else {
-            binding.content.infoShizukuBg.setBackgroundColor(getColor(R.color.warn_color))
-            binding.content.imageViewShizukuService.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_error_white))
-            binding.content.textViewShizukuServiceInfo.text = getString(R.string.xposed_service_not_connected)
-        }
-        return result
-    }
-
-    private fun checkXposedPermission() {
+    private fun checkXposedPermission(): Boolean {
         val isActive = HookTest.checkXposed()
         if (isActive) {
             binding.content.xposedInfoBg.setBackgroundColor(getColor(R.color.success_color))
@@ -148,6 +128,7 @@ class PermissionActivity : AppCompatActivity(), View.OnClickListener {
             binding.content.textViewServiceXposedInfo.text = getString(R.string.xposed_start)
             binding.content.textViewServiceXposedInfo.requestFocus()
         }
+        return isActive
     }
 
     override fun onClick(v: View) {
@@ -160,9 +141,6 @@ class PermissionActivity : AppCompatActivity(), View.OnClickListener {
                     setCancelable(false)
                     create().show()
                 }
-            }
-            R.id.materialCardView_shizuku_info -> {
-                ZFlow.me.recheckConnection()
             }
             R.id.materialCardView_accessibility_info -> {
                 accessibilityRFAR.launch(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))

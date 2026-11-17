@@ -23,18 +23,12 @@
     <string name="add_qq_channel">Join QQ channel</string>
     <string name="add_telegram">Telegram exchange group</string>
     <string name="open_source">Github</string>
-    <string name="try_to_init_shizuku">Trying to activate Shizuku service…</string>
     <string name="try_to_init_xposed_service">Trying to connect Xposed service…</string>
-    <string name="xposed_service_connected">Xposed service connected</string>
-    <string name="xposed_service_not_connected">Xposed service not connected</string>
     <string name="try_to_init_xposed">Having Xposed does not help Z-Flow to open freeform, but Z-Flow can prevent the application from jumping out of the freeform to full screen after having Xposed. To use Xposed, you need to go to the Xposed management application (such as Lsposed) to check the \"system framework\" for the Z-Flow and restart the device</string>
     <string name="sui_service_description">You can already experience Z-Flow service</string>
-    <string name="no_service_description">Xposed service does not start</string>
     <string name="start_market_fail">Failed to open app store</string>
     <string name="start_coolapk_fail">Failed to open Coolapk</string>
     <string name="start_qq_fail">Failed to open QQ</string>
-    <string name="sui_start_short">Sui activated</string>
-    <string name="shizuku_start_short">Shizuku is active</string>
     <string name="xposed_start_short">Xposed exists</string>
     <string name="accessibility_desc">Z-Flow keep alive service. This service can ensure the background survival of Z-Flow. Z-Flow does not collect any information through this service.</string>
     <string name="request_overlay_permission_fail">Unable to jump to the settings interface, please manually go to the settings to enable the \"display on top of other application interfaces\" permission of the Z-Flow</string>
@@ -46,10 +40,7 @@
     <string name="edit_apps">edit</string>
     <string name="xposed_no_start">(Optional) Xposed not activated</string>
     <string name="xposed_start">Xposed exists, please check the system framework and restart</string>
-    <string name="permission_info">In order to ensure the normal operation of the software, Z-Flow needs to apply for the following permissions. Among them, the Xposed permission can prevent the application in the freeform from jumping out to the full screen; the Shizuku/Sui permission is used to open core functions such as the freeform; the accessibility permission is used to ensure the survival of the Z-Flow; the overlay window permission is used to display the freeform interface; notification The usage rights are used to open the freeform of the notification app.</string>
-    <string name="shizuku_no_start">Shizuku/Sui</string>
-    <string name="sui_start">Sui service is already running</string>
-    <string name="shizuku_start">Shizuku service is already running</string>
+    <string name="permission_info">In order to ensure the normal operation of the software, Z-Flow needs to apply for the following permissions. Among them, the Xposed permission can prevent the application in the freeform from jumping out to the full screen; the accessibility permission is used to ensure the survival of the Z-Flow; the overlay window permission is used to display the freeform interface; notification The usage rights are used to open the freeform of the notification app.</string>
     <string name="accessibility_no_start">(Optional) Click to apply for accessibility</string>
     <string name="accessibility_start">Accessibility services are already running</string>
     <string name="overlay_no_start">Click to apply for overlay window permissions</string>
@@ -80,8 +71,6 @@
     <string name="compatible_title">Compatibility mode startup freeform (experimental)</string>
     <string name="compatible_summary">Use compatibility mode to start the freeform, this mode can solve the problem of abnormal interface size such as software notification in the freeform and full screen. Compatibility mode widget interface scaling is supported in the next version.</string>
     <string name="category_freeform">freeform settings</string>
-    <string name="use_sui_refuse_to_fullscreen_title">Use Shizuku/Sui to prevent apps from popping out of freeform to full screen (experimental)</string>
-    <string name="use_sui_refuse_to_fullscreen_summary">Currently only supports Android 12+. This feature is recommended to be enabled only when there is no Xposed or Xposed blocking fails. Try using Shizuku/Sui to prevent apps inside the freeform from popping out of the freeform to full screen. This function is still under testing, and there is no guarantee that the blocking will be successful, and it will cause problems such as screen flickering, freezing, etc.</string>
     <string name="category_floating">sidebar</string>
     <string name="switch_floating">Global sidebar</string>
     <string name="switch_floating_summary">Open freeform apps via sidebar</string>
@@ -104,7 +93,7 @@
     <string name="welcome">Welcome to Use Z-Flow</string>
     <string name="guide_a">Through the following tutorials, you will get started with Mi-Freefrom faster</string>
     <string name="button_step_a">1. Preparation before using the Z-Flow</string>
-    <string name="guide_a_text">\t\t<font color="red"><b>Special reminder: Z-Flow cannot run in Vulkan mode, if you have turned on similar options (such as Kaleidoscope ROM-Settings-System-Lab \"Use Vulkan for HWUI Rendering\"), please turn off this option, forcibly stop the Z-Flow and run again, otherwise it will crash! Please note that switching the Vulkan option may cause the device to fail to start. Please do not try on the main device!</b></font>\n\t\tBefore using the meter window, you must be introduced to the use of the meter window. <b>Mi Window requires Xposed and Shizuku/Sui</b>, if you don\'t know the above tools, please check the relevant information by yourself, <b>use Z-Flow after installation on the device</b>. \n\t\tZ-Flow currently supports a variety of startup methods, including: 1. Sidebar, 2. Quick tile 3. Reserved activities, etc. In the future, Z-Flow will support more startup methods.</string>
+    <string name="guide_a_text">\t\t<font color="red"><b>Special reminder: Z-Flow cannot run in Vulkan mode, if you have turned on similar options (such as Kaleidoscope ROM-Settings-System-Lab \"Use Vulkan for HWUI Rendering\"), please turn off this option, forcibly stop the Z-Flow and run again, otherwise it will crash! Please note that switching the Vulkan option may cause the device to fail to start. Please do not try on the main device!</b></font>\n\t\tBefore using the meter window, you must be introduced to the use of the meter window. <b>Mi Window requires Xposed</b>, if you don\'t know the above tools, please check the relevant information by yourself, <b>use Z-Flow after installation on the device</b>. \n\t\tZ-Flow currently supports a variety of startup methods, including: 1. Sidebar, 2. Quick tile 3. Reserved activities, etc. In the future, Z-Flow will support more startup methods.</string>
     <string name="button_step_b">2. Understand the control method of Z-Flow</string>
     <string name="guide_move">How does the freeform move? How to hang? Drag the indicated button to the four corners of the screen to try it. To resume from the suspended state, just click the freeform interface.</string>
     <string name="guide_back">Very good! So how to return to the previous interface in the freeform? Click on the indicated button</string>
@@ -172,8 +161,6 @@
     <string name="recent_label">Running Freeform</string>
     <string name="floating_alpha_title">Sidebar Transparency</string>
     <string name="recent_open_by_freeform">Open by Z-Flow</string>
-    <string name="nc_engine_enabled_title">NC 引擎总开关</string>
-    <string name="nc_engine_enabled_summary">关闭后开窗交回经典虚拟屏内核，引擎的控制条同时停止。已经打开的小窗需要关掉重开</string>
     <string name="nc_auto_minimize_title">开新窗时上一个收成迷你窗</string>
     <string name="nc_auto_minimize_summary">关闭后，打开新窗口时上一个窗口直接关闭，不再缩成迷你窗</string>
     <string name="nc_end_on_close_title">关闭小窗时结束应用</string>

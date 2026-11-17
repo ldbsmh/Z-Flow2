@@ -15,8 +15,6 @@
 
     <!--FreeformView-->
     <string name="service_not_running">Xposed服务未连接，请确保已在Xposed管理器中激活模块并勾选系统框架</string>
-    <string name="xposed_service_connected">Xposed服务已连接</string>
-    <string name="xposed_service_not_connected">Xposed服务未连接</string>
     <string name="try_to_init_xposed_service">正在尝试连接Xposed服务…</string>
     <string name="overlay_no_permission">没有悬浮窗权限</string>
     <string name="app_is_running">该应用已经处于小窗模式</string>
@@ -53,15 +51,11 @@
     <string name="device_label_api">API 级别：%1$d</string>
 
     <!--HomeFragment-->
-    <string name="try_to_init_shizuku">正在尝试激活Shizuku服务…</string>
     <string name="try_to_init_xposed">拥有Xposed后并不能帮助Z-Flow开启小窗，但Z-Flow拥有Xposed后可以阻止应用从小窗中跳出为全屏。使用Xposed，需要您去Xposed管理应用（如Lsposed）中为Z-Flow勾选”系统框架“并重启设备</string>
     <string name="sui_service_description">你已经可以体验Z-Flow服务</string>
-    <string name="no_service_description">Xposed和Sui/Shizuku服务都没有启动</string>
     <string name="start_market_fail">打开应用商店失败</string>
     <string name="start_coolapk_fail">打开酷安失败</string>
     <string name="start_qq_fail">打开QQ失败</string>
-    <string name="sui_start_short">Sui已激活</string>
-    <string name="shizuku_start_short">Shizuku已激活</string>
     <string name="xposed_start_short">Xposed存在</string>
     <string name="home_accessibility_warn_message">当前保活模式为无障碍服务，所以需要开启无障碍服务才可以正常运行。如果在你的设备上无障碍服务有问题或者你不想使用无障碍模式，可以去设置中切换保活模式</string>
     <string name="go_to_start_accessibility">开启无障碍</string>
@@ -86,10 +80,7 @@
     <!--content_permission-->
     <string name="xposed_no_start">（可选）Xposed没有激活</string>
     <string name="xposed_start">Xposed存在，请注意勾选系统框架并重启</string>
-    <string name="permission_info">为了保证软件的正常运行，Z-Flow需要申请以下权限。其中，Xposed权限可以防止小窗中的应用跳出到全屏；Shizuku/Sui权限用于打开小窗等核心功能；无障碍权限用于保证Z-Flow的存活；叠加窗口权限用于展示小窗界面；通知使用权用于打开通知应用的小窗。</string>
-    <string name="shizuku_no_start">点击授权Shizuku/Sui</string>
-    <string name="sui_start">Sui服务已经运行</string>
-    <string name="shizuku_start">Shizuku服务已经运行</string>
+    <string name="permission_info">为了保证软件的正常运行，Z-Flow需要申请以下权限。其中，Xposed权限可以防止小窗中的应用跳出到全屏；无障碍权限用于保证Z-Flow的存活；叠加窗口权限用于展示小窗界面；通知使用权用于打开通知应用的小窗。</string>
     <string name="accessibility_no_start">（可选）点击申请无障碍权限</string>
     <string name="accessibility_start">无障碍服务已经运行</string>
     <string name="overlay_no_start">点击申请叠加窗口权限</string>
@@ -133,8 +124,6 @@
     <string name="category_freeform">小窗外观与行为</string>
     <string name="remember_position_title">记住悬浮小窗位置</string>
     <string name="remember_position_summary">记住上次悬浮时的位置</string>
-    <string name="use_sui_refuse_to_fullscreen_title">使用Shizuku/Sui阻止应用跳出小窗到全屏(实验性)</string>
-    <string name="use_sui_refuse_to_fullscreen_summary">暂时只支持Android 12+。该功能建议仅在没有Xposed或者Xposed阻止失败时启用。尝试使用Shizuku/Sui阻止小窗内的应用从小窗跳出到全屏。该功能仍在测试中，不保证阻止成功，并且会导致屏幕闪烁、卡顿等问题</string>
 
     <string name="category_floating">侧边栏</string>
     <string name="switch_floating">全局侧边栏</string>
@@ -206,7 +195,7 @@
     <string name="welcome">欢迎使用Z-Flow</string>
     <string name="guide_a">通过下面的教程，你将会更快地上手Z-Flow</string>
     <string name="button_step_a">一、使用Z-Flow前的准备</string>
-    <string name="guide_a_text">\t\t<font color="red"><b>特别提醒：Z-Flow无法在Vulkan模式下运行，如果你开启过类似选项（如万花筒ROM-设置-系统-实验室中“使用Vulkan进行HWUI渲染”），请关闭该选项后，强行停止Z-Flow再运行，否则将闪退！请注意，切换Vulkan选项可能会导致设备无法启动，请不用在主要设备上尝试！</b></font>\n\t\t在使用Z-Flow前，必须向你介绍使用Z-Flow所必须的工具。<b>Z-Flow需要Xposed和Shizuku/Sui</b>，如果你不了解上述工具，请自行查阅相关资料，<b>在设备上安装完毕后再使用Z-Flow</b>。\n\t\tZ-Flow目前支持多种启动方式，包括：1.侧边栏，2.快捷磁贴 3.预留活动等，在未来，Z-Flow将会支持更多启动方式。</string>
+    <string name="guide_a_text">\t\t<font color="red"><b>特别提醒：Z-Flow无法在Vulkan模式下运行，如果你开启过类似选项（如万花筒ROM-设置-系统-实验室中“使用Vulkan进行HWUI渲染”），请关闭该选项后，强行停止Z-Flow再运行，否则将闪退！请注意，切换Vulkan选项可能会导致设备无法启动，请不用在主要设备上尝试！</b></font>\n\t\t在使用Z-Flow前，必须向你介绍使用Z-Flow所必须的工具。<b>Z-Flow需要Xposed</b>，如果你不了解上述工具，请自行查阅相关资料，<b>在设备上安装完毕后再使用Z-Flow</b>。\n\t\tZ-Flow目前支持多种启动方式，包括：1.侧边栏，2.快捷磁贴 3.预留活动等，在未来，Z-Flow将会支持更多启动方式。</string>
     <string name="button_step_b">二、了解Z-Flow的控制方式</string>
 
     <!--activity_guide_study-->
@@ -266,8 +255,6 @@
 
     <!--task_view_menu_option-->
     <string name="recent_open_by_freeform">使用Z-Flow打开</string>
-    <string name="nc_engine_enabled_title">NC 引擎总开关</string>
-    <string name="nc_engine_enabled_summary">关闭后开窗交回经典虚拟屏内核，引擎的控制条同时停止。已经打开的小窗需要关掉重开</string>
     <string name="nc_auto_minimize_title">开新窗时上一个收成迷你窗</string>
     <string name="nc_auto_minimize_summary">关闭后，打开新窗口时上一个窗口直接关闭，不再缩成迷你窗</string>
     <string name="nc_end_on_close_title">关闭小窗时结束应用</string>

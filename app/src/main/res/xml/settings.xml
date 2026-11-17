@@ -61,12 +61,6 @@
                 android:defaultValue="true"
                 app:iconSpaceReserved="false"/>
             <SwitchPreference
-                android:key="nc_engine_enabled"
-                android:title="@string/nc_engine_enabled_title"
-                android:summary="@string/nc_engine_enabled_summary"
-                android:defaultValue="true"
-                app:iconSpaceReserved="false"/>
-            <SwitchPreference
                 android:key="radial_gesture_enable"
                 android:title="@string/radial_gesture_enable_title"
                 android:summary="@string/radial_gesture_enable_summary"

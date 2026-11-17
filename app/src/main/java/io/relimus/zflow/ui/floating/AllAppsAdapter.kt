@@ -66,8 +66,8 @@ class AllAppsAdapter(
                     return@setOnClickListener
                 }
 
-                // 直接转发给 system_server 的 FreeformManager：
-                // 不再依赖 startService(FreeformService)，避免组件启动被后台限制拦截。
+                // 交给 NcWindowBackend 直接发 COMMAND 广播给 system_server：
+                // 不经过任何应用内 Service 组件，避免组件启动被后台限制拦截。
                 // 必须异步：create() 内部要查 Room，主线程查库会抛异常并被 fail-closed 拒绝。
                 FreeformRequestHandler.launchAsync(
                     context = context,
